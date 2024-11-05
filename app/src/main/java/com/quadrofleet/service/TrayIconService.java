@@ -1,5 +1,6 @@
 package com.quadrofleet.service;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
@@ -7,59 +8,112 @@ import java.net.URISyntaxException;
 
 public class TrayIconService {
 
+    private static final String PATH_TO_ICON = "src/images/1.gif";
+
+    private static final String URL_TO_MAP = "http://localhost:8090";
+
     public static void initTrayIcon() {
         if (!SystemTray.isSupported()) {
-            System.out.println("System tray is not supported !!! ");
+            JOptionPane.showMessageDialog(
+                    null,
+                    "System tray is not supported!",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+
+            System.exit(0);
+
             return;
         }
-        //get the systemTray of the system
-        SystemTray systemTray = SystemTray.getSystemTray();
 
-        //get default toolkit
-        //Toolkit toolkit = Toolkit.getDefaultToolkit();
-        //get image
-        //Toolkit.getDefaultToolkit().getImage("src/resources/busylogo.jpg");
-        Image image = Toolkit.getDefaultToolkit().getImage("src/images/1.gif");
-
-        //popupmenu
         PopupMenu trayPopupMenu = new PopupMenu();
+        trayPopupMenu.add(generateVideoStreamAction());
+        trayPopupMenu.add(generateMapAction());
+        trayPopupMenu.add(generateExitAction());
 
-        //1t menuitem for popupmenu
-        MenuItem videoStreamAction = new MenuItem("Video stream");
-        videoStreamAction.addActionListener(e -> {
-            // Run gstreamer
-        });
-        trayPopupMenu.add(videoStreamAction);
+        TrayIcon trayIcon = new TrayIcon(
+                Toolkit.getDefaultToolkit().getImage(PATH_TO_ICON),
+                ConfigService.getInstance().getBundleString("tray.icon.tooltip"),
+                trayPopupMenu);
 
-        //2d menuitem for popupmenu
-        MenuItem Mapaction = new MenuItem("Map");
-        Mapaction.addActionListener(e -> {
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                try {
-                    Desktop.getDesktop().browse(new URI("http://localhost:8090"));
-                } catch (IOException | URISyntaxException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        });
-        trayPopupMenu.add(Mapaction);
-
-        //Exit menuitem of popupmenu
-        MenuItem closeAction = new MenuItem("Close");
-        closeAction.addActionListener(e -> {
-            System.exit(0);
-        });
-        trayPopupMenu.add(closeAction);
-
-        //setting tray icon
-        TrayIcon trayIcon = new TrayIcon(image, "QuadroFleet Station", trayPopupMenu);
-        //adjust to default size as per system recommendation
         trayIcon.setImageAutoSize(true);
 
         try {
-            systemTray.add(trayIcon);
+            SystemTray.getSystemTray().add(trayIcon);
         } catch (AWTException awtException) {
-            awtException.printStackTrace();
+            //
+        }
+    }
+
+    private static MenuItem generateVideoStreamAction() {
+        MenuItem result = new MenuItem(ConfigService.getInstance().getBundleString("tray.video.tooltip"));
+
+        result.addActionListener(e -> executeGStreamer());
+
+        return result;
+    }
+
+    private static MenuItem generateMapAction() {
+        MenuItem result = new MenuItem(ConfigService.getInstance().getBundleString("tray.map.tooltip"));
+
+        result.addActionListener(e -> {
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                try {
+                    Desktop.getDesktop().browse(new URI(URL_TO_MAP));
+                } catch (IOException | URISyntaxException ex) {
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Can not open map in browser!",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        });
+
+        return result;
+    }
+
+    private static MenuItem generateExitAction() {
+        MenuItem result = new MenuItem(ConfigService.getInstance().getBundleString("tray.exit.tooltip"));
+
+        result.addActionListener(e -> System.exit(0));
+
+        return result;
+    }
+
+    private static void executeGStreamer() {
+        String[] command = {
+                "gst-launch-1.0",
+                "libcamerasrc",
+                "!",
+                "video/x-raw,width=640,height=480,framerate=60/1",
+                "!",
+                "videoflip",
+                "method=rotate-180",
+                "!",
+                "videoconvert",
+                "!",
+                "x264enc",
+                "bitrate=1000",
+                "speed-preset=ultrafast",
+                "tune=zerolatency",
+                "!",
+                "h264parse",
+                "!",
+                "rtph264pay",
+                "config-interval=1",
+                "pt=96",
+                "!",
+                "udpsink",
+                "host=100.96.1.2",
+                "port=2222"
+        };
+
+        try {
+            new ProcessBuilder(command).start();
+        } catch (IOException e) {
+            //
         }
     }
 
