@@ -1,5 +1,8 @@
 package com.quadrofleet.service;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 public class ConfigService {
 
     private static ConfigService instance;
@@ -23,6 +26,10 @@ public class ConfigService {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public String getBundleString(String key) {
+        return ResourceBundle.getBundle("messages", Locale.getDefault()).getString(key);
     }
 
 }
