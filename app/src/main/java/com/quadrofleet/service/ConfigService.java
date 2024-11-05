@@ -9,6 +9,10 @@ public class ConfigService {
 
     private boolean status;
 
+    private boolean runSDLEventLoop = true;
+
+    private String urlToMap = "http://localhost:8090";
+
     private ConfigService() {
         //
     }
@@ -26,6 +30,22 @@ public class ConfigService {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public boolean isRunSDLEventLoop() {
+        return runSDLEventLoop;
+    }
+
+    public void setRunSDLEventLoop(boolean runSDLEventLoop) {
+        this.runSDLEventLoop = runSDLEventLoop;
+    }
+
+    public String getUrlToMap() {
+        return urlToMap;
+    }
+
+    public void setUrlToMap(String urlToMap) {
+        this.urlToMap = urlToMap;
     }
 
     public String getBundleString(String key) {

@@ -10,8 +10,6 @@ public class TrayIconService {
 
     private static final String PATH_TO_ICON = "src/images/1.gif";
 
-    private static final String URL_TO_MAP = "http://localhost:8090";
-
     public static void initTrayIcon() {
         if (!SystemTray.isSupported()) {
             JOptionPane.showMessageDialog(
@@ -59,7 +57,7 @@ public class TrayIconService {
         result.addActionListener(e -> {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 try {
-                    Desktop.getDesktop().browse(new URI(URL_TO_MAP));
+                    Desktop.getDesktop().browse(new URI(ConfigService.getInstance().getUrlToMap()));
                 } catch (IOException | URISyntaxException ex) {
                     JOptionPane.showMessageDialog(
                             null,
@@ -77,7 +75,11 @@ public class TrayIconService {
     private static MenuItem generateExitAction() {
         MenuItem result = new MenuItem(ConfigService.getInstance().getBundleString("tray.exit.tooltip"));
 
-        result.addActionListener(e -> System.exit(0));
+        result.addActionListener(e -> {
+            ConfigService.getInstance().setRunSDLEventLoop(false);
+
+            System.exit(0);
+        });
 
         return result;
     }
