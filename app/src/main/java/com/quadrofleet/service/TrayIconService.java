@@ -1,5 +1,7 @@
 package com.quadrofleet.service;
 
+import com.quadrofleet.App;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -11,7 +13,7 @@ public class TrayIconService {
 
     private final Logger logger = Logger.getLogger(TrayIconService.class.getName());
 
-    private static final String PATH_TO_ICON = "src/images/1.gif";
+    private static final String PATH_TO_ICON = "/logo.png";
 
     public static void initTrayIcon() {
         if (!SystemTray.isSupported()) {
@@ -33,7 +35,7 @@ public class TrayIconService {
         trayPopupMenu.add(generateExitAction());
 
         TrayIcon trayIcon = new TrayIcon(
-                Toolkit.getDefaultToolkit().getImage(PATH_TO_ICON),
+                Toolkit.getDefaultToolkit().getImage(App.class.getResource(PATH_TO_ICON)),
                 ConfigService.getInstance().getBundleString("tray.icon.tooltip"),
                 trayPopupMenu);
 
