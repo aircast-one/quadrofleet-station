@@ -1,6 +1,7 @@
 package com.quadrofleet.service;
 
 import com.quadrofleet.App;
+import com.quadrofleet.ConfigLoader;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,8 +13,6 @@ import java.util.logging.Logger;
 public class TrayIconService {
 
     private final Logger logger = Logger.getLogger(TrayIconService.class.getName());
-
-    private static final String PATH_TO_ICON = "/logo.png";
 
     public static void initTrayIcon() {
         if (!SystemTray.isSupported()) {
@@ -35,7 +34,7 @@ public class TrayIconService {
         trayPopupMenu.add(generateExitAction());
 
         TrayIcon trayIcon = new TrayIcon(
-                Toolkit.getDefaultToolkit().getImage(App.class.getResource(PATH_TO_ICON)),
+                Toolkit.getDefaultToolkit().getImage(App.class.getResource("/logo.png")),
                 ConfigService.getInstance().getBundleString("tray.icon.tooltip"),
                 trayPopupMenu);
 
@@ -62,7 +61,7 @@ public class TrayIconService {
         result.addActionListener(e -> {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 try {
-                    Desktop.getDesktop().browse(new URI(ConfigService.getInstance().getUrlToMap()));
+                    Desktop.getDesktop().browse(new URI(ConfigLoader.getInstance().getProperty("map.url")));
                 } catch (IOException | URISyntaxException ex) {
                     JOptionPane.showMessageDialog(
                             null,
@@ -91,30 +90,18 @@ public class TrayIconService {
 
     private static void executeGStreamer() {
         String[] command = {
-                "gst-launch-1.0",
-                "libcamerasrc",
+                "gst-launch-1.0.exe",
+                "udpsrc",
+                "port=" + ConfigLoader.getInstance().getProperty("video.stream.receiver.port"),
                 "!",
-                "video/x-raw,width=640,height=480,framerate=60/1",
+                "application/x-rtp,encoding-name=H264,payload=96",
                 "!",
-                "videoflip",
-                "method=rotate-180",
+                "rtph264depay",
                 "!",
-                "videoconvert",
+                "avdec_h264",
                 "!",
-                "x264enc",
-                "bitrate=1000",
-                "speed-preset=ultrafast",
-                "tune=zerolatency",
-                "!",
-                "h264parse",
-                "!",
-                "rtph264pay",
-                "config-interval=1",
-                "pt=96",
-                "!",
-                "udpsink",
-                "host=100.96.1.2",
-                "port=2222"
+                "autovideosink",
+                "sync=false"
         };
 
         try {
