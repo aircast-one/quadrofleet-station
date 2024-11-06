@@ -1,5 +1,6 @@
 package com.quadrofleet.web;
 
+import com.quadrofleet.ConfigLoader;
 import org.eclipse.jetty.server.Server;
 
 public class WebServerService {
@@ -9,7 +10,7 @@ public class WebServerService {
     private final Thread THREAD;
 
     public WebServerService() {
-        SERVER = new Server(8090);
+        SERVER = new Server(ConfigLoader.getInstance().getPropertyAsInteger("server.port"));
         THREAD = new Thread(this::jettyInitialization);
     }
 
