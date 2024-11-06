@@ -5,8 +5,11 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.logging.Logger;
 
 public class TrayIconService {
+
+    private final Logger logger = Logger.getLogger(TrayIconService.class.getName());
 
     private static final String PATH_TO_ICON = "src/images/1.gif";
 
