@@ -56,7 +56,7 @@ public class FrameReceiverService {
                     }
                 });
 
-                Thread.sleep(20);
+                Thread.sleep(2);
             }
         } catch (Exception e) {
             logger.severe(e.getMessage());
