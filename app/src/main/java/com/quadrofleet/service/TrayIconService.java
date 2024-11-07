@@ -34,7 +34,7 @@ public class TrayIconService {
         trayPopupMenu.add(generateExitAction());
 
         TrayIcon trayIcon = new TrayIcon(
-                Toolkit.getDefaultToolkit().getImage(App.class.getResource("/logo.png")),
+                Toolkit.getDefaultToolkit().getImage(App.class.getResource("/app/logo.png")),
                 ConfigService.getInstance().getBundleString("tray.icon.tooltip"),
                 trayPopupMenu);
 
