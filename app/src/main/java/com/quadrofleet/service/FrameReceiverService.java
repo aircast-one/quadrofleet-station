@@ -3,11 +3,8 @@ package com.quadrofleet.service;
 import systems.beep.crossfire.frame.AttitudeFrame;
 import systems.beep.crossfire.frame.BatteryFrame;
 import systems.beep.crossfire.frame.CRSFFrame;
-import systems.beep.crossfire.frame.DeviceInfoFrame;
 import systems.beep.crossfire.frame.FlightModeFrame;
 import systems.beep.crossfire.frame.GPSFrame;
-import systems.beep.crossfire.frame.LinkStatisticsFrame;
-import systems.beep.crossfire.frame.OpenTxSyncFrame;
 import systems.beep.processor.FrameProcessor;
 import systems.beep.processor.IFrameProcessor;
 
@@ -24,8 +21,6 @@ public class FrameReceiverService {
 
     private final Thread THREAD;
 
-    private String udpLocalPort = "10800";
-
     public FrameReceiverService() {
         THREAD = new Thread(this::frameReceivingProcessing);
     }
@@ -39,7 +34,9 @@ public class FrameReceiverService {
     }
 
     private void frameReceivingProcessing() {
-        try (DatagramSocket socket = new DatagramSocket(Integer.parseInt(udpLocalPort), InetAddress.getByName("0.0.0.0"))) {
+        int udpLocalPort = Integer.parseInt(ConfigService.getInstance().getBundleString("telemetry.stream.receiver.port"));
+
+        try (DatagramSocket socket = new DatagramSocket(udpLocalPort, InetAddress.getByName("0.0.0.0"))) {
             logger.info("UDP receiver started on port " + udpLocalPort);
 
             byte[] buffer = new byte[1024];
@@ -79,16 +76,6 @@ public class FrameReceiverService {
             FlightConfigService.getInstance().getFlightStatus().setCurrent(batteryFrame.getCurrent());
             FlightConfigService.getInstance().getFlightStatus().setFuel(batteryFrame.getFuel());
             FlightConfigService.getInstance().getFlightStatus().setRemaining(batteryFrame.getRemaining());
-        } else if (frame instanceof DeviceInfoFrame) {
-            // DeviceInfoFrame processing
-            DeviceInfoFrame deviceInfoFrame = (DeviceInfoFrame) frame;
-
-            FlightConfigService.getInstance().getFlightStatus().setDeviceName(deviceInfoFrame.getDeviceName());
-            FlightConfigService.getInstance().getFlightStatus().setSerialNumber(deviceInfoFrame.getSerialNumber());
-            FlightConfigService.getInstance().getFlightStatus().setHardwareVersion(deviceInfoFrame.getHardwareVersion());
-            FlightConfigService.getInstance().getFlightStatus().setSoftwareVersion(deviceInfoFrame.getSoftwareVersion());
-            FlightConfigService.getInstance().getFlightStatus().setFieldCount(deviceInfoFrame.getFieldCount());
-            FlightConfigService.getInstance().getFlightStatus().setParamVersion(deviceInfoFrame.getParameterVersion());
         } else if (frame instanceof FlightModeFrame) {
             // FlightModeFrame processing
             FlightModeFrame flightModeFrame = (FlightModeFrame) frame;
@@ -104,26 +91,6 @@ public class FrameReceiverService {
             FlightConfigService.getInstance().getFlightStatus().setHeading(gpsFrame.getHeading());
             FlightConfigService.getInstance().getFlightStatus().setAltitude(gpsFrame.getAltitude());
             FlightConfigService.getInstance().getFlightStatus().setSatellites(gpsFrame.getSatellites());
-        } else if (frame instanceof LinkStatisticsFrame) {
-            // LinkStatisticsFrame processing
-            LinkStatisticsFrame linkStatisticsFrame = (LinkStatisticsFrame) frame;
-
-            FlightConfigService.getInstance().getFlightStatus().setUplinkRSSI1(linkStatisticsFrame.getUplinkRSSI1());
-            FlightConfigService.getInstance().getFlightStatus().setUplinkRSSI2(linkStatisticsFrame.getUplinkRSSI2());
-            FlightConfigService.getInstance().getFlightStatus().setUplinkLinkQuality(linkStatisticsFrame.getUplinkLinkQuality());
-            FlightConfigService.getInstance().getFlightStatus().setUplinkSNR(linkStatisticsFrame.getUplinkSNR());
-            FlightConfigService.getInstance().getFlightStatus().setUplinkPower(linkStatisticsFrame.getUplinkPower());
-            FlightConfigService.getInstance().getFlightStatus().setActiveAntenna(linkStatisticsFrame.getActiveAntenna());
-            FlightConfigService.getInstance().getFlightStatus().setRadioFrequencyMode(linkStatisticsFrame.getRadioFrequencyMode());
-            FlightConfigService.getInstance().getFlightStatus().setDownlinkRSSI(linkStatisticsFrame.getDownlinkRSSI());
-            FlightConfigService.getInstance().getFlightStatus().setDownlinkSNR(linkStatisticsFrame.getDownlinkSNR());
-            FlightConfigService.getInstance().getFlightStatus().setDownlinkLinkQuality(linkStatisticsFrame.getDownlinkLinkQuality());
-        } else if (frame instanceof OpenTxSyncFrame) {
-            // OpenTxSyncFrame processing
-            OpenTxSyncFrame openTxSyncFrame = (OpenTxSyncFrame) frame;
-
-            FlightConfigService.getInstance().getFlightStatus().setSyncFrameOffset(openTxSyncFrame.getOffset());
-            FlightConfigService.getInstance().getFlightStatus().setSyncFrameRate(openTxSyncFrame.getRate());
         }
     }
 
