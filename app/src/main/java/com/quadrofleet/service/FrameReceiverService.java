@@ -1,5 +1,6 @@
 package com.quadrofleet.service;
 
+import com.quadrofleet.ConfigLoader;
 import systems.beep.crossfire.frame.AttitudeFrame;
 import systems.beep.crossfire.frame.BatteryFrame;
 import systems.beep.crossfire.frame.CRSFFrame;
@@ -34,8 +35,8 @@ public class FrameReceiverService {
     }
 
     private void frameReceivingProcessing() {
-        int udpLocalPort = Integer.parseInt(ConfigService.getInstance().getBundleString("telemetry.stream.receiver.port"));
-        int interval = Integer.parseInt(ConfigService.getInstance().getBundleString("telemetry.stream.receiver.interval"));
+        int udpLocalPort = ConfigLoader.getInstance().getPropertyAsInteger("telemetry.stream.receiver.port");
+        int interval = ConfigLoader.getInstance().getPropertyAsInteger("telemetry.stream.receiver.interval");
 
         try (DatagramSocket socket = new DatagramSocket(udpLocalPort, InetAddress.getByName("0.0.0.0"))) {
             logger.info("UDP receiver started on port " + udpLocalPort);
