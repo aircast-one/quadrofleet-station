@@ -2,6 +2,8 @@ package com.quadrofleet.service;
 
 import com.quadrofleet.App;
 import com.quadrofleet.ConfigLoader;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 
 import javax.swing.*;
 import java.awt.*;
@@ -100,11 +102,17 @@ public class TrayIconService {
                 "!",
                 "avdec_h264",
                 "!",
-                "autovideosink",
+                "d3dvideosink",
                 "sync=false"
         };
 
         try {
+            WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, "GStreamer D3D video sink (internal window)");
+
+            if (hwnd != null) {
+                return;
+            }
+
             new ProcessBuilder(command).start();
         } catch (IOException e) {
             //

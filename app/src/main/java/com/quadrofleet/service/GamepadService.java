@@ -1,12 +1,18 @@
 package com.quadrofleet.service;
 
 import com.quadrofleet.helper.GamepadHelper;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
 import io.github.libsdl4j.api.event.SDL_Event;
 import io.github.libsdl4j.api.event.events.SDL_JoyAxisEvent;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameController;
 import io.github.libsdl4j.api.joystick.SDL_JoystickID;
 
 import javax.swing.*;
+import java.awt.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static io.github.libsdl4j.api.Sdl.SDL_Init;
@@ -24,6 +30,10 @@ public class GamepadService {
     private final Logger logger = Logger.getLogger(GamepadService.class.getName());
 
     private final Thread THREAD;
+
+    private JFrame overlay;
+
+    private ScheduledExecutorService executor;
 
     public GamepadService() {
         THREAD = new Thread(this::SDLInitialization);
@@ -52,6 +62,33 @@ public class GamepadService {
 
         SDL_GameController sdlGameController = null;
         SDL_Event evt = new SDL_Event();
+
+        // Overlay
+        // Set up overlay
+        setupOverlay();
+
+        // Initialize the scheduler
+        executor = Executors.newScheduledThreadPool(1);
+
+        // Schedule the overlay update at a 20ms interval
+        executor.scheduleAtFixedRate(() -> {
+            WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, "GStreamer D3D video sink (internal window)");
+
+            if (hwnd != null) {
+                WinDef.RECT rect = new WinDef.RECT();
+                User32.INSTANCE.GetWindowRect(hwnd, rect);
+
+                SwingUtilities.invokeLater(() -> {
+                    if (!overlay.isVisible()) {
+                        overlay.setVisible(true); // Show overlay only once when window is found
+                    }
+                    overlay.setSize(rect.right - rect.left, rect.bottom - rect.top);
+                    overlay.setLocation(rect.left, rect.top);
+                });
+            } else if (overlay.isVisible()) {
+                SwingUtilities.invokeLater(() -> overlay.setVisible(false)); // Hide overlay if window disappears
+            }
+        }, 1000, 20, TimeUnit.MILLISECONDS); // Initial delay of 100ms
 
         while (ConfigService.getInstance().isRunSDLEventLoop()) {
 
@@ -162,6 +199,25 @@ public class GamepadService {
             // Right Stick Y Axis
             FlightConfigService.getInstance().getFlightConfig().setThrottle(GamepadHelper.convertShortToDouble(event.value));
         }
+    }
+
+    private void setupOverlay() {
+        overlay = new JFrame();
+        overlay.setUndecorated(true);
+        overlay.setBackground(new Color(0, 0, 0, 0)); // Transparent background
+        overlay.setAlwaysOnTop(true);
+
+        JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(Color.RED);
+                g.drawString("Overlay Text", 150, 150);
+            }
+        };
+        panel.setOpaque(false);
+        overlay.add(panel);
+        overlay.setVisible(true);
     }
 
 }
