@@ -85,12 +85,16 @@ public class GamepadService {
                     overlay.setSize(rect.right - rect.left, rect.bottom - rect.top);
                     overlay.setLocation(rect.left, rect.top);
                 });
-            } else if (overlay.isVisible()) {
+            }
+
+            if (!overlay.isVisible()) {
                 SwingUtilities.invokeLater(() -> overlay.setVisible(false)); // Hide overlay if window disappears
             }
         }, 1000, 20, TimeUnit.MILLISECONDS); // Initial delay of 100ms
 
         while (ConfigService.getInstance().isRunSDLEventLoop()) {
+
+            overlay.repaint();
 
             if (sdlGameController == null) {
                 sdlGameController = SDL_GameControllerOpen(0);
@@ -211,10 +215,12 @@ public class GamepadService {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
+
                 g.setColor(Color.RED);
-                g.drawString("Overlay Text", 150, 150);
+                g.drawString("Pitch: " + FlightConfigService.getInstance().getFlightStatus().getPitch(), 150, 150);
             }
         };
+
         panel.setOpaque(false);
         overlay.add(panel);
         overlay.setVisible(true);
