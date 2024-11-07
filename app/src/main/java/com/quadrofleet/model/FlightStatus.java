@@ -4,29 +4,15 @@ import java.time.LocalDateTime;
 
 public class FlightStatus {
 
-    private boolean portStatus;
+    // Telemetry
 
-    //
+    private boolean armed;
 
-    private LocalDateTime lastPacket;
+    private boolean angleMode;
 
-    private String deviceName;
+    private boolean altHoldMode;
 
-    private String serialNumber;
-
-    private String hardwareVersion;
-
-    private String softwareVersion;
-
-    private Integer fieldCount;
-
-    private Integer paramVersion;
-
-    private long syncFrameOffset;
-
-    private long syncFrameRate;
-
-    // Attitude
+    private String flightMode;
 
     private double pitch;
 
@@ -36,15 +22,8 @@ public class FlightStatus {
 
     private double throttle;
 
-    // Flight mode
+    private LocalDateTime lastPacket;
 
-    private String flightMode;
-
-    private boolean armed;
-
-    private boolean angleMode;
-
-    private boolean altHoldMode;
 
     // Battery
 
@@ -55,28 +34,6 @@ public class FlightStatus {
     private double fuel;
 
     private double remaining;
-
-    // Link statistics
-
-    private int uplinkRSSI1;
-
-    private int uplinkRSSI2;
-
-    private int uplinkLinkQuality;
-
-    private int uplinkSNR;
-
-    private int activeAntenna;
-
-    private int radioFrequencyMode;
-
-    private int uplinkPower;
-
-    private int downlinkRSSI;
-
-    private int downlinkLinkQuality;
-
-    private int downlinkSNR;
 
     // GPS
 
@@ -97,43 +54,21 @@ public class FlightStatus {
      * Sets numeric fields to zero and string fields to null.
      */
     public void flush() {
-        setPortStatus(false);
-
-        setLastPacket(null);
-
-        setDeviceName(null);
-        setSerialNumber(null);
-        setHardwareVersion(null);
-        setSoftwareVersion(null);
-        setFieldCount(null);
-        setParamVersion(null);
-
-        setSyncFrameRate(0);
-        setSyncFrameOffset(0);
-
+        setArmed(false);
+        setAngleMode(false);
+        setAltHoldMode(false);
+        setFlightMode(null);
         setPitch(0);
         setRoll(0);
         setYaw(0);
         setThrottle(0);
 
-        setFlightMode(null);
-        setArmed(false);
+        setLastPacket(null);
 
         setVoltage(0);
         setCurrent(0);
         setFuel(0);
         setRemaining(0);
-
-        setUplinkRSSI1(0);
-        setUplinkRSSI2(0);
-        setUplinkLinkQuality(0);
-        setUplinkSNR(0);
-        setUplinkPower(0);
-        setActiveAntenna(0);
-        setRadioFrequencyMode(0);
-        setDownlinkRSSI(0);
-        setDownlinkSNR(0);
-        setDownlinkLinkQuality(0);
 
         setLatitude(0);
         setLongitude(0);
@@ -159,14 +94,6 @@ public class FlightStatus {
         return lastPacket != null && LocalDateTime.now().minusSeconds(10).isAfter(lastPacket);
     }
 
-    public boolean isPortStatus() {
-        return portStatus;
-    }
-
-    public FlightStatus setPortStatus(boolean portStatus) {
-        this.portStatus = portStatus;
-        return this;
-    }
 
     public LocalDateTime getLastPacket() {
         return lastPacket;
@@ -174,78 +101,6 @@ public class FlightStatus {
 
     public FlightStatus setLastPacket(LocalDateTime lastPacket) {
         this.lastPacket = lastPacket;
-        return this;
-    }
-
-    public String getDeviceName() {
-        return deviceName;
-    }
-
-    public FlightStatus setDeviceName(String deviceName) {
-        this.deviceName = deviceName;
-        return this;
-    }
-
-    public String getSerialNumber() {
-        return serialNumber;
-    }
-
-    public FlightStatus setSerialNumber(String serialNumber) {
-        this.serialNumber = serialNumber;
-        return this;
-    }
-
-    public String getHardwareVersion() {
-        return hardwareVersion;
-    }
-
-    public FlightStatus setHardwareVersion(String hardwareVersion) {
-        this.hardwareVersion = hardwareVersion;
-        return this;
-    }
-
-    public String getSoftwareVersion() {
-        return softwareVersion;
-    }
-
-    public FlightStatus setSoftwareVersion(String softwareVersion) {
-        this.softwareVersion = softwareVersion;
-        return this;
-    }
-
-    public Integer getFieldCount() {
-        return fieldCount;
-    }
-
-    public FlightStatus setFieldCount(Integer fieldCount) {
-        this.fieldCount = fieldCount;
-        return this;
-    }
-
-    public Integer getParamVersion() {
-        return paramVersion;
-    }
-
-    public FlightStatus setParamVersion(Integer paramVersion) {
-        this.paramVersion = paramVersion;
-        return this;
-    }
-
-    public long getSyncFrameOffset() {
-        return syncFrameOffset;
-    }
-
-    public FlightStatus setSyncFrameOffset(long syncFrameOffset) {
-        this.syncFrameOffset = syncFrameOffset;
-        return this;
-    }
-
-    public long getSyncFrameRate() {
-        return syncFrameRate;
-    }
-
-    public FlightStatus setSyncFrameRate(long syncFrameRate) {
-        this.syncFrameRate = syncFrameRate;
         return this;
     }
 
@@ -354,96 +209,6 @@ public class FlightStatus {
 
     public FlightStatus setRemaining(double remaining) {
         this.remaining = remaining;
-        return this;
-    }
-
-    public int getUplinkRSSI1() {
-        return uplinkRSSI1;
-    }
-
-    public FlightStatus setUplinkRSSI1(int uplinkRSSI1) {
-        this.uplinkRSSI1 = uplinkRSSI1;
-        return this;
-    }
-
-    public int getUplinkRSSI2() {
-        return uplinkRSSI2;
-    }
-
-    public FlightStatus setUplinkRSSI2(int uplinkRSSI2) {
-        this.uplinkRSSI2 = uplinkRSSI2;
-        return this;
-    }
-
-    public int getUplinkLinkQuality() {
-        return uplinkLinkQuality;
-    }
-
-    public FlightStatus setUplinkLinkQuality(int uplinkLinkQuality) {
-        this.uplinkLinkQuality = uplinkLinkQuality;
-        return this;
-    }
-
-    public int getUplinkSNR() {
-        return uplinkSNR;
-    }
-
-    public FlightStatus setUplinkSNR(int uplinkSNR) {
-        this.uplinkSNR = uplinkSNR;
-        return this;
-    }
-
-    public int getActiveAntenna() {
-        return activeAntenna;
-    }
-
-    public FlightStatus setActiveAntenna(int activeAntenna) {
-        this.activeAntenna = activeAntenna;
-        return this;
-    }
-
-    public int getRadioFrequencyMode() {
-        return radioFrequencyMode;
-    }
-
-    public FlightStatus setRadioFrequencyMode(int radioFrequencyMode) {
-        this.radioFrequencyMode = radioFrequencyMode;
-        return this;
-    }
-
-    public int getUplinkPower() {
-        return uplinkPower;
-    }
-
-    public FlightStatus setUplinkPower(int uplinkPower) {
-        this.uplinkPower = uplinkPower;
-        return this;
-    }
-
-    public int getDownlinkRSSI() {
-        return downlinkRSSI;
-    }
-
-    public FlightStatus setDownlinkRSSI(int downlinkRSSI) {
-        this.downlinkRSSI = downlinkRSSI;
-        return this;
-    }
-
-    public int getDownlinkLinkQuality() {
-        return downlinkLinkQuality;
-    }
-
-    public FlightStatus setDownlinkLinkQuality(int downlinkLinkQuality) {
-        this.downlinkLinkQuality = downlinkLinkQuality;
-        return this;
-    }
-
-    public int getDownlinkSNR() {
-        return downlinkSNR;
-    }
-
-    public FlightStatus setDownlinkSNR(int downlinkSNR) {
-        this.downlinkSNR = downlinkSNR;
         return this;
     }
 
