@@ -35,6 +35,7 @@ public class FrameReceiverService {
 
     private void frameReceivingProcessing() {
         int udpLocalPort = Integer.parseInt(ConfigService.getInstance().getBundleString("telemetry.stream.receiver.port"));
+        int interval = Integer.parseInt(ConfigService.getInstance().getBundleString("telemetry.stream.receiver.interval"));
 
         try (DatagramSocket socket = new DatagramSocket(udpLocalPort, InetAddress.getByName("0.0.0.0"))) {
             logger.info("UDP receiver started on port " + udpLocalPort);
@@ -53,7 +54,7 @@ public class FrameReceiverService {
                     }
                 });
 
-                Thread.sleep(2);
+                Thread.sleep(interval);
             }
         } catch (Exception e) {
             logger.severe(e.getMessage());
