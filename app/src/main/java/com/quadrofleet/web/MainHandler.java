@@ -41,6 +41,18 @@ public class MainHandler extends Handler.Abstract {
         return true;
     }
 
+    private static boolean getPointerPng(Response response, Callback callback) throws IOException {
+        ByteBuffer content = ByteBuffer.wrap(Files.readAllBytes(Paths.get("src/main/resources/web/img/pointer.png")));
+
+        response.getHeaders().put(HttpHeader.CONTENT_TYPE, "image/png");
+        response.getHeaders().put(HttpHeader.CONTENT_LENGTH, content.remaining());
+        response.setStatus(HttpStatus.OK_200);
+        response.write(true, content, callback);
+
+        callback.succeeded();
+        return true;
+    }
+
     private static boolean styleCss(Response response, Callback callback) throws IOException {
         ByteBuffer content = ByteBuffer.wrap(Files.readAllBytes(Paths.get("src/main/resources/web/css/style.css")));
 
@@ -100,6 +112,7 @@ public class MainHandler extends Handler.Abstract {
             case "/telemetry" -> getTelemetry(response, callback);
 
             case "/img/favicon.ico" -> getFavicon(response, callback);
+            case "/img/pointer.png" -> getPointerPng(response, callback);
             case "/css/style.css" -> styleCss(response, callback);
             case "/js/script.js" -> jsScript(response, callback);
 

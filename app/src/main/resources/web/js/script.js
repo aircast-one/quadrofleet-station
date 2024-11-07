@@ -1,6 +1,5 @@
-// WebSocket
-let lastLatitude = 48.132582;
-let lastLongitude = 11.581609;
+let lastLatitude = 0;
+let lastLongitude = 0;
 
 function toggleTable(tableId) {
     const table = document.querySelector(`.telemetry-table[data-table="${tableId}"]`);
@@ -36,6 +35,21 @@ function updateFuelRotation(value) {
     let transform = gElement.getAttribute('transform');
 
     const newAngle = value * 2;
+    transform = transform.replace(/rotate\([-+]?[0-9]*\.?[0-9]+\)/, 'rotate(' + newAngle + ')');
+
+    gElement.setAttribute('transform', transform);
+}
+
+function updateHeadingRotation(value) {
+    const gElement = document.getElementById('heading-value');
+
+    if (gElement === null) {
+        return;
+    }
+
+    let transform = gElement.getAttribute('transform');
+
+    const newAngle = value * -2;
     transform = transform.replace(/rotate\([-+]?[0-9]*\.?[0-9]+\)/, 'rotate(' + newAngle + ')');
 
     gElement.setAttribute('transform', transform);
@@ -81,6 +95,7 @@ function updateMap(latitude, longitude) {
         lastLongitude = longitude;
 
         map.getView().setCenter(ol.proj.fromLonLat([longitude, latitude]));
+        iconFeature.getGeometry().setCoordinates(ol.proj.fromLonLat([longitude, latitude]));
     }
 }
 
@@ -112,17 +127,45 @@ function parseFlightStatus(telemetryData) {
 
     updateFuelRotation(telemetryData.remaining);
     updateRollRotation(telemetryData.roll);
+    updateHeadingRotation(telemetryData.heading);
     updatePitchValue(telemetryData.pitch);
 }
 
 setInterval(fetchTelemetryData, 20);
 
+const iconFeature = new ol.Feature({
+    geometry: new ol.geom.Point([0, 0]),
+    name: 'Null Island',
+    population: 4000,
+    rainfall: 500,
+});
+
+const iconStyle = new ol.style.Style({
+    image: new ol.style.Icon({
+        anchor: [0.5, 46],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+        src: 'img/pointer.png',
+    }),
+});
+
+iconFeature.setStyle(iconStyle);
+
+const vectorMarkerSource = new ol.source.Vector({
+    features: [iconFeature],
+});
+
+const vectorMarkerGroup = new ol.layer.Vector({
+    source: vectorMarkerSource
+});
+
 const map = new ol.Map({
     target: 'map',
+    controls: [],
     layers: [
         new ol.layer.Tile({
             source: new ol.source.OSM()
-        })
+        }), vectorMarkerGroup
     ],
     view: new ol.View({
         center: ol.proj.fromLonLat([lastLatitude, lastLongitude]),

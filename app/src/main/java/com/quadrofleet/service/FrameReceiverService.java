@@ -70,6 +70,8 @@ public class FrameReceiverService {
             FlightConfigService.getInstance().getFlightStatus().setPitch(attitudeFrame.getPitch());
             FlightConfigService.getInstance().getFlightStatus().setRoll(attitudeFrame.getRoll());
             FlightConfigService.getInstance().getFlightStatus().setYaw(attitudeFrame.getYaw());
+
+            FlightConfigService.getInstance().getFlightStatus().setHeading(attitudeFrame.getYaw());
         } else if (frame instanceof BatteryFrame) {
             // BatteryFrame processing
             BatteryFrame batteryFrame = (BatteryFrame) frame;
@@ -90,7 +92,6 @@ public class FrameReceiverService {
             FlightConfigService.getInstance().getFlightStatus().setLatitude(gpsFrame.getLatitude());
             FlightConfigService.getInstance().getFlightStatus().setLongitude(gpsFrame.getLongitude());
             FlightConfigService.getInstance().getFlightStatus().setGroundSpeed(gpsFrame.getGroundSpeed());
-            FlightConfigService.getInstance().getFlightStatus().setHeading(gpsFrame.getHeading());
             FlightConfigService.getInstance().getFlightStatus().setAltitude(gpsFrame.getAltitude());
             FlightConfigService.getInstance().getFlightStatus().setSatellites(gpsFrame.getSatellites());
         }
