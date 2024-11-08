@@ -90,11 +90,14 @@ function updatePitchValue(value) {
 }
 
 function updateMap(latitude, longitude) {
+    if (latitude !== 0 && longitude !== 0) {
+        map.getView().setCenter(ol.proj.fromLonLat([longitude, latitude]));
+    }
+
     if (latitude !== lastLatitude && longitude !== lastLongitude) {
         lastLatitude = latitude;
         lastLongitude = longitude;
 
-        map.getView().setCenter(ol.proj.fromLonLat([longitude, latitude]));
         iconFeature.getGeometry().setCoordinates(ol.proj.fromLonLat([longitude, latitude]));
     }
 }
