@@ -12,6 +12,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -393,41 +396,80 @@ public class GamepadService {
 
     private String generateDateTimeInfo() {
         return "<html>" +
-                "<p>" + getIcon("e539",
-                (int) (windowHeightParam * 8)) + " Pitch: " + FlightConfigService.getInstance().getFlightStatus().getPitch() + "</p>" +
-                "<p>New line</p>" +
+                "<p>" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SS")) + "</p>" +
+                "<p>&nbsp;</p>" +
+                "<p>Armed&nbsp;&nbsp;&nbsp;" + getYesNoIcon(FlightConfigService.getInstance().getFlightStatus().isArmed()) + "</p>" +
+                "<p>Angle&nbsp;&nbsp;&nbsp;" + getYesNoIcon(FlightConfigService.getInstance().getFlightStatus().isAngleMode()) + "</p>" +
+                "<p>AltHold&nbsp;" + getYesNoIcon(FlightConfigService.getInstance().getFlightStatus().isAltHoldMode()) + "</p>" +
                 "</html>";
     }
 
+    private String getYesNoIcon(boolean value) {
+        return (value) ? getIcon("e86c", (int) (windowHeightParam * 8)) : getIcon("ef4a", (int) (windowHeightParam * 8));
+    }
+
     private String generateCompassInfo() {
+        String flightMode = FlightConfigService.getInstance().getFlightStatus().getFlightMode();
+
         return "<html>" +
                 "<p>W --------- N --------- E</p>" +
-                "<p style='text-align:center;'>STAB</p>" +
+                "<p style='text-align:center;'>" + flightMode + "</p>" +
                 "</html>";
     }
 
     private String generateBatteryInfo() {
+        String batteryIcon = getIcon("e1a4", (int) (windowHeightParam * 8));
+
+        long remainingInt = Math.round(FlightConfigService.getInstance().getFlightStatus().getRemaining());
+
+        String voltage = String.format(Locale.US, "%,.2fV", FlightConfigService.getInstance().getFlightStatus().getVoltage());
+        String current = String.format(Locale.US, "%,.2fA", FlightConfigService.getInstance().getFlightStatus().getCurrent());
+        String remaining = remainingInt + "%";
+        String fuel = Math.round(FlightConfigService.getInstance().getFlightStatus().getFuel()) + "mAh";
+
+        if (remainingInt > 50 && remainingInt <= 75) {
+            batteryIcon = getIcon("ebd4", (int) (windowHeightParam * 8));
+        } else if (remainingInt >= 25 && remainingInt < 50) {
+            batteryIcon = getIcon("ebe2", (int) (windowHeightParam * 8));
+        } else if (remainingInt < 25) {
+            batteryIcon = getIcon("e19c", (int) (windowHeightParam * 8));
+        }
+
         return "<html>" +
-                "<p>" + getIcon("e1a4", (int) (windowHeightParam * 8)) + " " + Math.round(
-                FlightConfigService.getInstance().getFlightStatus().getFuel()) + "% " + FlightConfigService.getInstance().getFlightStatus().getVoltage() + "V</p>" +
-                "<p>New line</p>" +
+                "<p>" + batteryIcon + " " + remaining + " " + fuel + "</p>" +
+                "<p>" + voltage + " " + current + "</p>" +
                 "</html>";
     }
 
     private String generateAltitudeInfo() {
-        return "Altitude";
+        return "<html>" +
+                "<p>" + getIcon("ea16",
+                (int) (windowHeightParam * 8)) + " " + FlightConfigService.getInstance().getFlightStatus().getAltitude() + "m</p>" +
+                "</html>";
     }
 
     private String generateGPSInfo() {
-        return "GPS";
+        return "<html>" +
+                "<p>Lat " + FlightConfigService.getInstance().getFlightStatus().getLatitude() + "</p>" +
+                "<p>Lon " + FlightConfigService.getInstance().getFlightStatus().getLongitude() + "</p>" +
+                "<p>" + getIcon("eb3a",
+                (int) (windowHeightParam * 8)) + " " + FlightConfigService.getInstance().getFlightStatus().getSatellites() + "</p>" +
+                "</html>";
     }
 
     private String generateGroundSpeedInfo() {
-        return "Ground Speed";
+        return "<html>" +
+                "<p>" + getIcon("e539",
+                (int) (windowHeightParam * 8)) + " " + FlightConfigService.getInstance().getFlightStatus().getGroundSpeed() + "m/s</p>" +
+                "</html>";
     }
 
     private String generatePitchRollInfo() {
-        return "Pitch Roll";
+        return "<html>" +
+                "<p>" + String.format(Locale.US, "P %,.2f°", FlightConfigService.getInstance().getFlightStatus().getPitch()) + "</p>" +
+                "<p>" + String.format(Locale.US, "R %,.2f°", FlightConfigService.getInstance().getFlightStatus().getRoll()) + "</p>" +
+                "<p>" + String.format(Locale.US, "Y %,.2f°", FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
+                "</html>";
     }
 
 }
