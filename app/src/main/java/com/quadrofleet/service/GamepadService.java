@@ -32,6 +32,49 @@ import static io.github.libsdl4j.api.hints.SdlHints.SDL_SetHint;
 
 public class GamepadService {
 
+    private static final String[] DIRECTIONS = {
+            "E----SE----S----SW----W",
+            "----SE----S----SW----W-",
+            "---SE----S----SW----W--",
+            "--SE----S----SW----W---",
+            "-SE----S----SW----W----",
+            "SE----S----SW----W----NW",
+            "----S----SW----W----NW-",
+            "---S----SW----W----NW--",
+            "--S----SW----W----NW---",
+            "-S----SW----W----NW----",
+            "S----SW----W----NW----N",
+            "----SW----W----NW----N-",
+            "---SW----W----NW----N--",
+            "--SW----W----NW----N---",
+            "-SW----W----NW----N----",
+            "SW----W----NW----N----NE",
+            "----W----NW----N----NE-",
+            "---W----NW----N----NE--",
+            "--W----NW----N----NE---",
+            "-W----NW----N----NE----",
+            "W----NW----N----NE----E",
+            "----NW----N----NE----E-",
+            "---NW----N----NE----E--",
+            "--NW----N----NE----E---",
+            "-NW----N----NE----E----",
+            "NW----N----NE----E----SE",
+            "----N----NE----E----SE-",
+            "---N----NE----E----SE--",
+            "--N----NE----E----SE---",
+            "-N----NE----E----SE----",
+            "N----NE----E----SE----S",
+            "----NE----E----SE----S-",
+            "---NE----E----SE----S--",
+            "--NE----E----SE----S---",
+            "-NE----E----SE----S----",
+            "NE----E----SE----S----SW",
+            "----E----SE----S----SW-",
+            "---E----SE----S----SW--",
+            "--E----SE----S----SW---",
+            "-E----SE----S----SW----"
+    };
+
     private final Logger logger = Logger.getLogger(GamepadService.class.getName());
 
     private final Thread THREAD;
@@ -48,6 +91,16 @@ public class GamepadService {
 
     private static String getIcon(String code, int size) {
         return "<span style=\"font-family: Material Icons; font-size: " + size + "px\">&#x" + code + "</span>";
+    }
+
+    public static String generateCompassDirections(double degrees) {
+        int normalizedDegrees = (int) ((degrees + 180) % 360);
+
+        if (normalizedDegrees < 0) {
+            normalizedDegrees += 360;
+        }
+
+        return DIRECTIONS[normalizedDegrees / 9];
     }
 
     public void start() {
@@ -409,10 +462,12 @@ public class GamepadService {
     }
 
     private String generateCompassInfo() {
-        String flightMode = FlightConfigService.getInstance().getFlightStatus().getFlightMode();
+        String flightMode = (FlightConfigService.getInstance().getFlightStatus().getFlightMode() != null) ?
+                FlightConfigService.getInstance().getFlightStatus().getFlightMode().replace("!", "") :
+                "----";
 
         return "<html>" +
-                "<p>W --------- N --------- E</p>" +
+                "<p>" + generateCompassDirections(FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
                 "<p style='text-align:center;'>" + flightMode + "</p>" +
                 "</html>";
     }
@@ -450,8 +505,8 @@ public class GamepadService {
 
     private String generateGPSInfo() {
         return "<html>" +
-                "<p>Lat " + FlightConfigService.getInstance().getFlightStatus().getLatitude() + "</p>" +
-                "<p>Lon " + FlightConfigService.getInstance().getFlightStatus().getLongitude() + "</p>" +
+                "<p>Lat " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLatitude()) + "</p>" +
+                "<p>Lon " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLongitude()) + "</p>" +
                 "<p>" + getIcon("eb3a",
                 (int) (windowHeightParam * 8)) + " " + FlightConfigService.getInstance().getFlightStatus().getSatellites() + "</p>" +
                 "</html>";
@@ -459,8 +514,11 @@ public class GamepadService {
 
     private String generateGroundSpeedInfo() {
         return "<html>" +
-                "<p>" + getIcon("e539",
-                (int) (windowHeightParam * 8)) + " " + FlightConfigService.getInstance().getFlightStatus().getGroundSpeed() + "m/s</p>" +
+                "<p>" +
+                getIcon("e539", (int) (windowHeightParam * 8)) +
+                " " +
+                String.format(Locale.US, "%,.2fm/s°", FlightConfigService.getInstance().getFlightStatus().getGroundSpeed()) +
+                "</p>" +
                 "</html>";
     }
 
