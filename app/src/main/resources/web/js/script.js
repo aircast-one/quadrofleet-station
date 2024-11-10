@@ -49,8 +49,7 @@ function updateHeadingRotation(value) {
 
     let transform = gElement.getAttribute('transform');
 
-    const newAngle = value * -2;
-    transform = transform.replace(/rotate\([-+]?[0-9]*\.?[0-9]+\)/, 'rotate(' + newAngle + ')');
+    transform = transform.replace(/rotate\([-+]?[0-9]*\.?[0-9]+\)/, 'rotate(' + value * -1 + ')');
 
     gElement.setAttribute('transform', transform);
 }
@@ -102,6 +101,57 @@ function updateMap(latitude, longitude) {
     }
 }
 
+function addIconAtLocation(coordinate, type = "T") {
+    const iconFeature = new ol.Feature({
+        geometry: new ol.geom.Point(ol.proj.fromLonLat(coordinate)),
+        type: type,
+    });
+
+    iconFeature.setStyle(type === 'T' ? iconStyleTarget : iconStyleHome);
+
+    iconLayer.getSource().addFeature(iconFeature);
+}
+
+function getAllFeaturesInfo() {
+    const featuresInfo = [];
+
+    iconLayer.getSource().getFeatures().forEach((feature) => {
+        const coordinate = ol.proj.toLonLat(feature.getGeometry().getCoordinates());
+        const type = feature.get('type');
+
+        featuresInfo.push({
+            coordinate: coordinate,
+            type: type,
+        });
+    });
+
+    return featuresInfo;
+}
+
+function sendPointList(list) {
+    const payload = {points: list};
+
+    fetch('/map-points', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+}
+
 function parseFlightStatus(telemetryData) {
     document.getElementById('armed') && (document.getElementById('armed').textContent = telemetryData.armed);
     document.getElementById('angleMode') && (document.getElementById('angleMode').textContent = telemetryData.angleMode);
@@ -138,21 +188,36 @@ setInterval(fetchTelemetryData, 20);
 
 const iconFeature = new ol.Feature({
     geometry: new ol.geom.Point([0, 0]),
-    name: 'Null Island',
-    population: 4000,
-    rainfall: 500,
 });
 
-const iconStyle = new ol.style.Style({
+const iconStyleDrone = new ol.style.Style({
     image: new ol.style.Icon({
         anchor: [0.5, 46],
         anchorXUnits: 'fraction',
         anchorYUnits: 'pixels',
-        src: 'img/pointer.png',
+        src: 'img/drone-icon.png',
     }),
 });
 
-iconFeature.setStyle(iconStyle);
+const iconStyleTarget = new ol.style.Style({
+    image: new ol.style.Icon({
+        anchor: [0.5, 46],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+        src: 'img/target-icon.png',
+    }),
+});
+
+const iconStyleHome = new ol.style.Style({
+    image: new ol.style.Icon({
+        anchor: [0.5, 46],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+        src: 'img/home-icon.png',
+    }),
+});
+
+iconFeature.setStyle(iconStyleDrone);
 
 const vectorMarkerSource = new ol.source.Vector({
     features: [iconFeature],
@@ -162,16 +227,50 @@ const vectorMarkerGroup = new ol.layer.Vector({
     source: vectorMarkerSource
 });
 
+const iconLayer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+});
+
 const map = new ol.Map({
     target: 'map',
     controls: [],
     layers: [
         new ol.layer.Tile({
             source: new ol.source.OSM()
-        }), vectorMarkerGroup
+        }), vectorMarkerGroup, iconLayer
     ],
     view: new ol.View({
         center: ol.proj.fromLonLat([lastLatitude, lastLongitude]),
         zoom: 15
     })
 });
+
+map.on('singleclick', function (event) {
+    let featureFound = false;
+
+    map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
+        if (layer === iconLayer) {
+            featureFound = true;
+
+            if (feature.get('type') === 'T') {
+                feature.setStyle(iconStyleHome);
+                feature.set('type', 'H');
+
+                sendPointList(getAllFeaturesInfo());
+            } else {
+                iconLayer.getSource().removeFeature(feature);
+
+                sendPointList(getAllFeaturesInfo());
+            }
+
+            return true;
+        }
+    });
+
+    if (!featureFound) {
+        const lonLat = ol.proj.toLonLat(event.coordinate);
+        addIconAtLocation(lonLat);
+
+        sendPointList(getAllFeaturesInfo());
+    }
+})

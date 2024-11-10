@@ -1,5 +1,10 @@
 package com.quadrofleet.model;
 
+import com.quadrofleet.model.map.MapPoint;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class FlightConfig {
 
     private ThrottleMode throttleMode = ThrottleMode.ACRO;
@@ -119,13 +124,7 @@ public class FlightConfig {
      */
     private int channel16 = 0;
 
-    private double homeLatitude = 0;
-
-    private double homeLongitude;
-
-    private double targetLatitude = 0;
-
-    private double targetLongitude = 0;
+    private List<MapPoint> mapPoints = new ArrayList<>();
 
     /**
      * Resets all the flight config data to their default values.
@@ -277,40 +276,8 @@ public class FlightConfig {
         return this;
     }
 
-    public double getTargetLongitude() {
-        return targetLongitude;
-    }
-
-    public FlightConfig setTargetLongitude(double targetLongitude) {
-        this.targetLongitude = targetLongitude;
-        return this;
-    }
-
-    public double getTargetLatitude() {
-        return targetLatitude;
-    }
-
-    public FlightConfig setTargetLatitude(double targetLatitude) {
-        this.targetLatitude = targetLatitude;
-        return this;
-    }
-
-    public double getHomeLongitude() {
-        return homeLongitude;
-    }
-
-    public FlightConfig setHomeLongitude(double homeLongitude) {
-        this.homeLongitude = homeLongitude;
-        return this;
-    }
-
-    public double getHomeLatitude() {
-        return homeLatitude;
-    }
-
-    public FlightConfig setHomeLatitude(double homeLatitude) {
-        this.homeLatitude = homeLatitude;
-        return this;
+    public List<MapPoint> getMapPoints() {
+        return mapPoints;
     }
 
     public enum ThrottleMode {

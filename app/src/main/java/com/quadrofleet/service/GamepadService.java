@@ -89,10 +89,6 @@ public class GamepadService {
         THREAD = new Thread(this::SDLInitialization);
     }
 
-    private static String getIcon(String code, int size) {
-        return "<span style=\"font-family: Material Icons; font-size: " + size + "px\">&#x" + code + "</span>";
-    }
-
     public static String generateCompassDirections(double degrees) {
         int normalizedDegrees = (int) ((degrees + 180) % 360);
 
@@ -323,6 +319,9 @@ public class GamepadService {
         JLabel altitudeLabel = new JLabel("Altitude");
         altitudeLabel.setForeground(Color.WHITE);
 
+        JLabel targetDistanceLabel = new JLabel("Target distance");
+        targetDistanceLabel.setForeground(Color.WHITE);
+
         Font fontConsole = new Font("Consolas", Font.PLAIN, 14);
 
         //
@@ -352,6 +351,9 @@ public class GamepadService {
 
                 altitudeLabel.setFont(fontConsole.deriveFont(Font.PLAIN, (int) (windowHeightParam * 14)));
                 altitudeLabel.setText(generateAltitudeInfo());
+
+                targetDistanceLabel.setFont(fontConsole.deriveFont(Font.PLAIN, (int) (windowHeightParam * 14)));
+                targetDistanceLabel.setText(generateTargetDistanceInfo());
             }
         };
 
@@ -424,12 +426,24 @@ public class GamepadService {
                 SpringLayout.SOUTH,
                 result);
 
-        springLayout.putConstraint(SpringLayout.EAST, altitudeLabel,
+        springLayout.putConstraint(SpringLayout.EAST,
+                altitudeLabel,
                 -30,
                 SpringLayout.EAST,
                 result);
         springLayout.putConstraint(SpringLayout.VERTICAL_CENTER,
                 altitudeLabel,
+                0,
+                SpringLayout.VERTICAL_CENTER,
+                result);
+
+        springLayout.putConstraint(SpringLayout.WEST,
+                targetDistanceLabel,
+                30,
+                SpringLayout.WEST,
+                result);
+        springLayout.putConstraint(SpringLayout.VERTICAL_CENTER,
+                targetDistanceLabel,
                 0,
                 SpringLayout.VERTICAL_CENTER,
                 result);
@@ -441,6 +455,7 @@ public class GamepadService {
         result.add(compassLabel);
         result.add(groundSpeedLabel);
         result.add(altitudeLabel);
+        result.add(targetDistanceLabel);
 
         result.setOpaque(false);
 
@@ -458,7 +473,9 @@ public class GamepadService {
     }
 
     private String getYesNoIcon(boolean value) {
-        return (value) ? getIcon("e86c", (int) (windowHeightParam * 8)) : getIcon("ef4a", (int) (windowHeightParam * 8));
+        return (value) ?
+                GamepadHelper.getIcon("e86c", (int) (windowHeightParam * 8)) :
+                GamepadHelper.getIcon("ef4a", (int) (windowHeightParam * 8));
     }
 
     private String generateCompassInfo() {
@@ -466,34 +483,18 @@ public class GamepadService {
                 FlightConfigService.getInstance().getFlightStatus().getFlightMode().replace("!", "") :
                 "----";
 
-        long targetHeading = GamepadHelper.calculateAngle(
-                FlightConfigService.getInstance().getFlightStatus().getLatitude(),
-                FlightConfigService.getInstance().getFlightStatus().getLongitude(),
-                FlightConfigService.getInstance().getFlightConfig().getTargetLatitude(),
-                FlightConfigService.getInstance().getFlightConfig().getTargetLongitude()
-        );
-
-        long homeHeading = GamepadHelper.calculateAngle(
-                FlightConfigService.getInstance().getFlightStatus().getLatitude(),
-                FlightConfigService.getInstance().getFlightStatus().getLongitude(),
-                FlightConfigService.getInstance().getFlightConfig().getHomeLatitude(),
-                FlightConfigService.getInstance().getFlightConfig().getHomeLongitude()
-        );
-
         return "<html>" +
                 "<p style='text-align:center;'>" + flightMode + "</p>" +
                 "<p>" + generateCompassDirections(FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
                 "<p>" + GamepadHelper.drawTarget(
                 (int) FlightConfigService.getInstance().getFlightStatus().getYaw(),
-                targetHeading,
-                getIcon("e55d", (int) (windowHeightParam * 8)),
-                homeHeading,
-                getIcon("e88a", (int) (windowHeightParam * 8))) + "</p>" +
+                GamepadHelper.getIcon("e88a", (int) (windowHeightParam * 8)),
+                GamepadHelper.getIcon("e55d", (int) (windowHeightParam * 8))) + "</p>" +
                 "</html>";
     }
 
     private String generateBatteryInfo() {
-        String batteryIcon = getIcon("e1a4", (int) (windowHeightParam * 8));
+        String batteryIcon = GamepadHelper.getIcon("e1a4", (int) (windowHeightParam * 8));
 
         long remainingInt = Math.round(FlightConfigService.getInstance().getFlightStatus().getRemaining());
 
@@ -503,11 +504,11 @@ public class GamepadService {
         String fuel = Math.round(FlightConfigService.getInstance().getFlightStatus().getFuel()) + "mAh";
 
         if (remainingInt > 50 && remainingInt <= 75) {
-            batteryIcon = getIcon("ebd4", (int) (windowHeightParam * 8));
+            batteryIcon = GamepadHelper.getIcon("ebd4", (int) (windowHeightParam * 8));
         } else if (remainingInt >= 25 && remainingInt < 50) {
-            batteryIcon = getIcon("ebe2", (int) (windowHeightParam * 8));
+            batteryIcon = GamepadHelper.getIcon("ebe2", (int) (windowHeightParam * 8));
         } else if (remainingInt < 25) {
-            batteryIcon = getIcon("e19c", (int) (windowHeightParam * 8));
+            batteryIcon = GamepadHelper.getIcon("e19c", (int) (windowHeightParam * 8));
         }
 
         return "<html>" +
@@ -518,7 +519,7 @@ public class GamepadService {
 
     private String generateAltitudeInfo() {
         return "<html>" +
-                "<p>" + getIcon("ea16",
+                "<p>" + GamepadHelper.getIcon("ea16",
                 (int) (windowHeightParam * 8)) + " " + FlightConfigService.getInstance().getFlightStatus().getAltitude() + "m</p>" +
                 "</html>";
     }
@@ -527,7 +528,7 @@ public class GamepadService {
         return "<html>" +
                 "<p>Lat " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLatitude()) + "</p>" +
                 "<p>Lon " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLongitude()) + "</p>" +
-                "<p>" + getIcon("eb3a",
+                "<p>" + GamepadHelper.getIcon("eb3a",
                 (int) (windowHeightParam * 8)) + " " + FlightConfigService.getInstance().getFlightStatus().getSatellites() + "</p>" +
                 "</html>";
     }
@@ -535,7 +536,7 @@ public class GamepadService {
     private String generateGroundSpeedInfo() {
         return "<html>" +
                 "<p>" +
-                getIcon("e539", (int) (windowHeightParam * 8)) +
+                GamepadHelper.getIcon("e539", (int) (windowHeightParam * 8)) +
                 " " +
                 String.format(Locale.US, "%,.2fm/s", FlightConfigService.getInstance().getFlightStatus().getGroundSpeed()) +
                 "</p>" +
@@ -548,6 +549,10 @@ public class GamepadService {
                 "<p>" + String.format(Locale.US, "R %,.2f°", FlightConfigService.getInstance().getFlightStatus().getRoll()) + "</p>" +
                 "<p>" + String.format(Locale.US, "Y %,.2f°", FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
                 "</html>";
+    }
+
+    private String generateTargetDistanceInfo() {
+        return "<html>" + GamepadHelper.generateTargetDistanceList(windowHeightParam) + "</html>";
     }
 
 }

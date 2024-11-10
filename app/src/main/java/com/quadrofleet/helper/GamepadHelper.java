@@ -1,8 +1,12 @@
 package com.quadrofleet.helper;
 
+import com.quadrofleet.service.FlightConfigService;
 import io.github.libsdl4j.api.event.events.SDL_JoyAxisEvent;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameController;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameControllerButton;
+
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static io.github.libsdl4j.api.gamecontroller.SdlGamecontroller.SDL_GameControllerGetButton;
 
@@ -89,23 +93,82 @@ public class GamepadHelper {
         return (int) ((offset + 90) * 20 / 180);
     }
 
-    public static String drawTarget(double heading, double home, String homeSymbol, double target, String targetSymbol) {
-        int targetPos = offsetPos(heading, target);
-        int homePos = offsetPos(heading, home);
-
+    public static String drawTarget(double heading, String homeSymbol, String targetSymbol) {
         String[] result = new String[21];
 
         for (int i = 0; i < 21; i++) {
-            if (target != 0 && targetPos == i) {
-                result[i] = targetSymbol;
-            } else if (home != 0 && homePos == i) {
-                result[i] = homeSymbol;
-            } else {
-                result[i] = "&nbsp";
-            }
+            result[i] = "&nbsp";
         }
 
+        FlightConfigService.getInstance().getFlightConfig().getMapPoints().forEach(point -> {
+            if (point.isTarget()) {
+                long targetHeading = GamepadHelper.calculateAngle(
+                        FlightConfigService.getInstance().getFlightStatus().getLatitude(),
+                        FlightConfigService.getInstance().getFlightStatus().getLongitude(),
+                        point.getLatitude(),
+                        point.getLongitude()
+                );
+
+                int position = offsetPos(heading, targetHeading);
+
+                if (position >= 0) {
+                    result[position] = targetSymbol;
+                }
+            } else {
+                long homeHeading = GamepadHelper.calculateAngle(
+                        FlightConfigService.getInstance().getFlightStatus().getLatitude(),
+                        FlightConfigService.getInstance().getFlightStatus().getLongitude(),
+                        point.getLatitude(),
+                        point.getLongitude()
+                );
+
+                int position = offsetPos(heading, homeHeading);
+
+                if (position >= 0) {
+                    result[position] = homeSymbol;
+                }
+            }
+        });
+
         return String.join("", result);
+    }
+
+    public static double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
+        double lat1Rad = Math.toRadians(lat1);
+        double lon1Rad = Math.toRadians(lon1);
+        double lat2Rad = Math.toRadians(lat2);
+        double lon2Rad = Math.toRadians(lon2);
+
+        double dLat = lat2Rad - lat1Rad;
+        double dLon = lon2Rad - lon1Rad;
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return 6371e3 * c;
+    }
+
+    public static String generateTargetDistanceList(double windowHeightParam) {
+        return FlightConfigService.getInstance().getFlightConfig().getMapPoints().stream().map(point -> {
+            double longitude = FlightConfigService.getInstance().getFlightStatus().getLongitude();
+            double latitude = FlightConfigService.getInstance().getFlightStatus().getLatitude();
+
+            String icon = (point.isHome()) ? getIcon("e88a", (int) (windowHeightParam * 8)) : getIcon("e55d", (int) (windowHeightParam * 8));
+
+            return "<p>" + icon + " " + String.format(Locale.US, "%dm", Math.round(haversineDistance(
+                    latitude,
+                    longitude,
+                    point.getLatitude(),
+                    point.getLongitude()
+            ))) + "</p>";
+        }).collect(Collectors.joining());
+    }
+
+    public static String getIcon(String code, int size) {
+        return "<span style=\"font-family: Material Icons; font-size: " + size + "px\">&#x" + code + "</span>";
     }
 
 }
