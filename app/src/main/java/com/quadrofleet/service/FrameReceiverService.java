@@ -12,6 +12,7 @@ import systems.beep.processor.IFrameProcessor;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class FrameReceiverService {
@@ -41,13 +42,13 @@ public class FrameReceiverService {
         try (DatagramSocket socket = new DatagramSocket(udpLocalPort, InetAddress.getByName("0.0.0.0"))) {
             logger.info("UDP receiver started on port " + udpLocalPort);
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[256];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
             while (true) {
                 socket.receive(packet);
 
-                frameProcessor.processData(packet.getData(), frame -> {
+                frameProcessor.processData(Arrays.copyOf(packet.getData(), packet.getLength()), frame -> {
                     processFrame(frame);
 
                     if (frame.isTelemetry()) {
