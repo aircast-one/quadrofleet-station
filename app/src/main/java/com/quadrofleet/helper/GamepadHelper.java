@@ -8,6 +8,10 @@ import static io.github.libsdl4j.api.gamecontroller.SdlGamecontroller.SDL_GameCo
 
 public class GamepadHelper {
 
+    private static final double DEGTORAD = Math.PI / 180.0;
+
+    private static final double RADTODEG = 180.0 / Math.PI;
+
     private GamepadHelper() {
         //
     }
@@ -54,6 +58,54 @@ public class GamepadHelper {
 
     public static double convertShortToDouble(short value) {
         return value / 32767.5;
+    }
+
+    public static long calculateAngle(double lat1, double lon1, double lat2, double lon2) {
+        if (lat2 == 0 && lon2 == 0) {
+            return 0;
+        }
+
+        double dLon = (lon2 - lon1) * DEGTORAD;
+        double y = Math.sin(dLon) * Math.cos(lat2 * DEGTORAD);
+        double x = Math.cos(lat1 * DEGTORAD) * Math.sin(lat2 * DEGTORAD) - Math.sin(lat1 * DEGTORAD) * Math.cos(lat2 * DEGTORAD) * Math.cos(dLon);
+        double angle = Math.atan2(y, x) * RADTODEG;
+
+        return Math.round(angle);
+    }
+
+    public static double calculateOffset(double heading, double target) {
+        double result = ((target - heading + 180) % 360) - 180;
+
+        return (result > -180) ? result : result + 360;
+    }
+
+    public static int offsetPos(double heading, double target) {
+        double offset = calculateOffset(heading, target);
+
+        if (offset < -90 || offset > 90) {
+            return -1;
+        }
+
+        return (int) ((offset + 90) * 20 / 180);
+    }
+
+    public static String drawTarget(double heading, double home, String homeSymbol, double target, String targetSymbol) {
+        int targetPos = offsetPos(heading, target);
+        int homePos = offsetPos(heading, home);
+
+        String[] result = new String[21];
+
+        for (int i = 0; i < 21; i++) {
+            if (target != 0 && targetPos == i) {
+                result[i] = targetSymbol;
+            } else if (home != 0 && homePos == i) {
+                result[i] = homeSymbol;
+            } else {
+                result[i] = "&nbsp";
+            }
+        }
+
+        return String.join("", result);
     }
 
 }

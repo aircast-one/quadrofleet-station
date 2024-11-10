@@ -466,9 +466,29 @@ public class GamepadService {
                 FlightConfigService.getInstance().getFlightStatus().getFlightMode().replace("!", "") :
                 "----";
 
+        long targetHeading = GamepadHelper.calculateAngle(
+                FlightConfigService.getInstance().getFlightStatus().getLatitude(),
+                FlightConfigService.getInstance().getFlightStatus().getLongitude(),
+                FlightConfigService.getInstance().getFlightConfig().getTargetLatitude(),
+                FlightConfigService.getInstance().getFlightConfig().getTargetLongitude()
+        );
+
+        long homeHeading = GamepadHelper.calculateAngle(
+                FlightConfigService.getInstance().getFlightStatus().getLatitude(),
+                FlightConfigService.getInstance().getFlightStatus().getLongitude(),
+                FlightConfigService.getInstance().getFlightConfig().getHomeLatitude(),
+                FlightConfigService.getInstance().getFlightConfig().getHomeLongitude()
+        );
+
         return "<html>" +
-                "<p>" + generateCompassDirections(FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
                 "<p style='text-align:center;'>" + flightMode + "</p>" +
+                "<p>" + generateCompassDirections(FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
+                "<p>" + GamepadHelper.drawTarget(
+                (int) FlightConfigService.getInstance().getFlightStatus().getYaw(),
+                targetHeading,
+                getIcon("e55d", (int) (windowHeightParam * 8)),
+                homeHeading,
+                getIcon("e88a", (int) (windowHeightParam * 8))) + "</p>" +
                 "</html>";
     }
 
@@ -517,7 +537,7 @@ public class GamepadService {
                 "<p>" +
                 getIcon("e539", (int) (windowHeightParam * 8)) +
                 " " +
-                String.format(Locale.US, "%,.2fm/s°", FlightConfigService.getInstance().getFlightStatus().getGroundSpeed()) +
+                String.format(Locale.US, "%,.2fm/s", FlightConfigService.getInstance().getFlightStatus().getGroundSpeed()) +
                 "</p>" +
                 "</html>";
     }
