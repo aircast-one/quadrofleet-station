@@ -119,6 +119,14 @@ public class FlightConfig {
      */
     private int channel16 = 0;
 
+    private double homeLatitude = 0;
+
+    private double homeLongitude;
+
+    private double targetLatitude = 0;
+
+    private double targetLongitude = 0;
+
     /**
      * Resets all the flight config data to their default values.
      * Sets numeric fields to zero and string fields to null.
@@ -131,6 +139,10 @@ public class FlightConfig {
         setArmed(false);
         setMovementBorders(1);
         setThrottleMode(ThrottleMode.ACRO);
+    }
+
+    public double getPitch() {
+        return pitch;
     }
 
     /**
@@ -150,8 +162,8 @@ public class FlightConfig {
         return this;
     }
 
-    public double getPitch() {
-        return pitch;
+    public double getRoll() {
+        return roll;
     }
 
     /**
@@ -169,8 +181,8 @@ public class FlightConfig {
         return this;
     }
 
-    public double getRoll() {
-        return roll;
+    public double getYaw() {
+        return yaw;
     }
 
     /**
@@ -188,8 +200,8 @@ public class FlightConfig {
         return this;
     }
 
-    public double getYaw() {
-        return yaw;
+    public double getThrottle() {
+        return throttle;
     }
 
     /**
@@ -206,10 +218,6 @@ public class FlightConfig {
         this.throttle = processSensibility(this.throttle, this.throttleSensibility);
 
         return this;
-    }
-
-    public double getThrottle() {
-        return throttle;
     }
 
     public FlightConfig resetThrottle() {
@@ -269,8 +277,43 @@ public class FlightConfig {
         return this;
     }
 
+    public double getTargetLongitude() {
+        return targetLongitude;
+    }
+
+    public FlightConfig setTargetLongitude(double targetLongitude) {
+        this.targetLongitude = targetLongitude;
+        return this;
+    }
+
+    public double getTargetLatitude() {
+        return targetLatitude;
+    }
+
+    public FlightConfig setTargetLatitude(double targetLatitude) {
+        this.targetLatitude = targetLatitude;
+        return this;
+    }
+
+    public double getHomeLongitude() {
+        return homeLongitude;
+    }
+
+    public FlightConfig setHomeLongitude(double homeLongitude) {
+        this.homeLongitude = homeLongitude;
+        return this;
+    }
+
+    public double getHomeLatitude() {
+        return homeLatitude;
+    }
+
+    public FlightConfig setHomeLatitude(double homeLatitude) {
+        this.homeLatitude = homeLatitude;
+        return this;
+    }
+
     public enum ThrottleMode {
         ACRO, ANGLE
     }
-
 }
