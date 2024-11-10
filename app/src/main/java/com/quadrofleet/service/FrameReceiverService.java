@@ -42,7 +42,7 @@ public class FrameReceiverService {
         try (DatagramSocket socket = new DatagramSocket(udpLocalPort, InetAddress.getByName("0.0.0.0"))) {
             logger.info("UDP receiver started on port " + udpLocalPort);
 
-            byte[] buffer = new byte[256];
+            byte[] buffer = new byte[128];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
             while (true) {
