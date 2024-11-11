@@ -12,6 +12,49 @@ import static io.github.libsdl4j.api.gamecontroller.SdlGamecontroller.SDL_GameCo
 
 public class GamepadHelper {
 
+    private static final String[] DIRECTIONS = {
+            "E---------S---------W",
+            "---------S---------W-",
+            "--------S---------W--",
+            "-------S---------W---",
+            "------S---------W----",
+            "-----S---------W-----",
+            "----S---------W------",
+            "---S---------W-------",
+            "--S---------W--------",
+            "-S---------W---------",
+            "S---------W---------N",
+            "---------W---------N-",
+            "--------W---------N--",
+            "-------W---------N---",
+            "------W---------N----",
+            "-----W---------N-----",
+            "----W---------N------",
+            "---W---------N-------",
+            "--W---------N--------",
+            "-W---------N---------",
+            "W---------N---------E",
+            "---------N---------E-",
+            "--------N---------E--",
+            "-------N---------E---",
+            "------N---------E----",
+            "-----N---------E-----",
+            "----N---------E------",
+            "---N---------E-------",
+            "--N---------E--------",
+            "-N---------E---------",
+            "N---------E---------S",
+            "---------E---------S-",
+            "--------E---------S--",
+            "-------E---------S---",
+            "------E---------S----",
+            "-----E---------S-----",
+            "----E---------S------",
+            "---E---------S-------",
+            "--E---------S--------",
+            "-E---------S---------"
+    };
+
     private static final double DEGTORAD = Math.PI / 180.0;
 
     private static final double RADTODEG = 180.0 / Math.PI;
@@ -165,6 +208,16 @@ public class GamepadHelper {
                     point.getLongitude()
             ))) + "</p>";
         }).collect(Collectors.joining());
+    }
+
+    public static String generateCompassDirections(double degrees) {
+        int normalizedDegrees = (int) ((degrees + 180) % 360);
+
+        if (normalizedDegrees < 0) {
+            normalizedDegrees += 360;
+        }
+
+        return GamepadHelper.DIRECTIONS[normalizedDegrees / 9];
     }
 
     public static String getIcon(String code, int size) {

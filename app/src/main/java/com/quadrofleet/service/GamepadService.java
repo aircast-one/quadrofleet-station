@@ -32,49 +32,6 @@ import static io.github.libsdl4j.api.hints.SdlHints.SDL_SetHint;
 
 public class GamepadService {
 
-    private static final String[] DIRECTIONS = {
-            "E----SE----S----SW----W",
-            "----SE----S----SW----W-",
-            "---SE----S----SW----W--",
-            "--SE----S----SW----W---",
-            "-SE----S----SW----W----",
-            "SE----S----SW----W----NW",
-            "----S----SW----W----NW-",
-            "---S----SW----W----NW--",
-            "--S----SW----W----NW---",
-            "-S----SW----W----NW----",
-            "S----SW----W----NW----N",
-            "----SW----W----NW----N-",
-            "---SW----W----NW----N--",
-            "--SW----W----NW----N---",
-            "-SW----W----NW----N----",
-            "SW----W----NW----N----NE",
-            "----W----NW----N----NE-",
-            "---W----NW----N----NE--",
-            "--W----NW----N----NE---",
-            "-W----NW----N----NE----",
-            "W----NW----N----NE----E",
-            "----NW----N----NE----E-",
-            "---NW----N----NE----E--",
-            "--NW----N----NE----E---",
-            "-NW----N----NE----E----",
-            "NW----N----NE----E----SE",
-            "----N----NE----E----SE-",
-            "---N----NE----E----SE--",
-            "--N----NE----E----SE---",
-            "-N----NE----E----SE----",
-            "N----NE----E----SE----S",
-            "----NE----E----SE----S-",
-            "---NE----E----SE----S--",
-            "--NE----E----SE----S---",
-            "-NE----E----SE----S----",
-            "NE----E----SE----S----SW",
-            "----E----SE----S----SW-",
-            "---E----SE----S----SW--",
-            "--E----SE----S----SW---",
-            "-E----SE----S----SW----"
-    };
-
     private final Logger logger = Logger.getLogger(GamepadService.class.getName());
 
     private final Thread THREAD;
@@ -87,16 +44,6 @@ public class GamepadService {
 
     public GamepadService() {
         THREAD = new Thread(this::SDLInitialization);
-    }
-
-    public static String generateCompassDirections(double degrees) {
-        int normalizedDegrees = (int) ((degrees + 180) % 360);
-
-        if (normalizedDegrees < 0) {
-            normalizedDegrees += 360;
-        }
-
-        return DIRECTIONS[normalizedDegrees / 9];
     }
 
     public void start() {
@@ -485,7 +432,7 @@ public class GamepadService {
 
         return "<html>" +
                 "<p style='text-align:center;'>" + flightMode + "</p>" +
-                "<p>" + generateCompassDirections(FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
+                "<p>" + GamepadHelper.generateCompassDirections(FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
                 "<p>" + GamepadHelper.drawTarget(
                 (int) FlightConfigService.getInstance().getFlightStatus().getYaw(),
                 GamepadHelper.getIcon("e88a", (int) (windowHeightParam * 8)),
