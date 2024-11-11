@@ -111,15 +111,17 @@ To run your GStreamer pipeline as a daemon on Raspberry Pi OS Lite 64-bit, you c
 
 SAME AND:
 
-[Unit]
-Description=RPi Zero Controller Service
-After=network.target
-
-[Service]
-WorkingDirectory=/home/sam/rpiz
-ExecStart=/home/sam/.sdkman/candidates/java/current/bin/java -jar rpiz.jar
-Restart=always
-User=sam
-
-[Install]
-WantedBy=multi-user.target
+   ```ini
+   [Unit]
+   Description=RPi Zero Controller Service
+   After=network.target
+   
+   [Service]
+   WorkingDirectory=/home/sam/rpiz
+   ExecStart=/home/sam/.sdkman/candidates/java/current/bin/java -jar rpiz.jar
+   Restart=always
+   User=sam
+   
+   [Install]
+   WantedBy=multi-user.target
+   ```
