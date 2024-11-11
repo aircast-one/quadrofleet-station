@@ -194,12 +194,12 @@ public class GamepadHelper {
         return 6371e3 * c;
     }
 
-    public static String generateTargetDistanceList(double windowHeightParam) {
+    public static String generateTargetDistanceList(int iconSize) {
         return FlightConfigService.getInstance().getFlightConfig().getMapPoints().stream().map(point -> {
             double longitude = FlightConfigService.getInstance().getFlightStatus().getLongitude();
             double latitude = FlightConfigService.getInstance().getFlightStatus().getLatitude();
 
-            String icon = (point.isHome()) ? getIcon("e88a", (int) (windowHeightParam * 8)) : getIcon("e55d", (int) (windowHeightParam * 8));
+            String icon = (point.isHome()) ? getIcon("e88a", iconSize) : getIcon("e55d", iconSize);
 
             return "<p>" + icon + " " + String.format(Locale.US, "%dm", Math.round(haversineDistance(
                     latitude,
