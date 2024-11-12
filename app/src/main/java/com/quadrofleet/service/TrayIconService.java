@@ -33,6 +33,7 @@ public class TrayIconService {
         PopupMenu trayPopupMenu = new PopupMenu();
         trayPopupMenu.add(generateVideoStreamAction());
         trayPopupMenu.add(generateMapAction());
+        trayPopupMenu.add(generateAboutAction());
         trayPopupMenu.add(generateExitAction());
 
         TrayIcon trayIcon = new TrayIcon(
@@ -68,6 +69,27 @@ public class TrayIconService {
                     JOptionPane.showMessageDialog(
                             null,
                             "Can not open map in browser!",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        });
+
+        return result;
+    }
+
+    private static MenuItem generateAboutAction() {
+        MenuItem result = new MenuItem(ConfigService.getInstance().getBundleString("tray.info.tooltip"));
+
+        result.addActionListener(e -> {
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                try {
+                    Desktop.getDesktop().browse(new URI("https://quadrofleet.com"));
+                } catch (IOException | URISyntaxException ex) {
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Can not open info in browser!",
                             "Error",
                             JOptionPane.ERROR_MESSAGE
                     );
