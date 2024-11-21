@@ -15,8 +15,8 @@ echo
 # Prompt for network settings with default ports
 echo "Network settings."
 read -p "Target IP (UDP Video Stream): " TARGET_IP # 100.96.1.2
-read -p "Target port (UDP Video Stream) [default: 10800]: " TARGET_PORT
-TARGET_PORT=${TARGET_PORT:-10800}  # Default to 10800 if no input
+read -p "Target port (UDP Video Stream) [default: 10900]: " TARGET_PORT
+TARGET_PORT=${TARGET_PORT:-10900}  # Default to 10900 if no input
 
 read -p "Local port (UDP Control Stream) [default: 10800]: " LOCAL_PORT
 LOCAL_PORT=${LOCAL_PORT:-10800}  # Default to 10800 if no input
