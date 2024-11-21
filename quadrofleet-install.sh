@@ -85,7 +85,7 @@ Description=OpenVPN 3 Linux configuration auto loader and starter
 After=network.target dbus.service
 
 [Service]
-Type=oneshot
+Type=simple
 ExecStart=/usr/sbin/openvpn3-autoload --directory /home/$OS_USERNAME/.openvpn3/autoload
 Restart=always
 User=$OS_USERNAME
