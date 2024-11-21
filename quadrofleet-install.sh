@@ -159,4 +159,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable quadrofleet-controller.service
 sudo systemctl start quadrofleet-controller.service
 
+sudo raspi-config
+
 echo "Setup completed. Check service statuses with 'sudo systemctl status <service_name>'."
