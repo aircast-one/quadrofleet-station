@@ -106,7 +106,7 @@ Description=GStreamer Streaming Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/gst-launch-1.0 libcamerasrc ! video/x-raw,width=640,height=480,framerate=50/1 ! videoflip method=rotate-180 ! videoconvert ! x264enc bitrate=0 speed-preset=ultrafast tune=zerolatency ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=$TARGET_IP port=$TARGET_PORT
+ExecStart=/usr/bin/gst-launch-1.0 libcamerasrc ! video/x-raw,width=480,height=360,framerate=50/1 ! videoflip method=rotate-180 ! videoconvert ! x264enc bitrate=1000 speed-preset=ultrafast tune=zerolatency ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=$TARGET_IP port=$TARGET_PORT
 Restart=always
 User=$OS_USERNAME
 
