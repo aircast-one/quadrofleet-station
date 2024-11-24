@@ -5,55 +5,13 @@ import io.github.libsdl4j.api.event.events.SDL_JoyAxisEvent;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameController;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameControllerButton;
 
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static io.github.libsdl4j.api.gamecontroller.SdlGamecontroller.SDL_GameControllerGetButton;
 
 public class GamepadHelper {
-
-    private static final String[] DIRECTIONS = {
-            "E---------S---------W",
-            "---------S---------W-",
-            "--------S---------W--",
-            "-------S---------W---",
-            "------S---------W----",
-            "-----S---------W-----",
-            "----S---------W------",
-            "---S---------W-------",
-            "--S---------W--------",
-            "-S---------W---------",
-            "S---------W---------N",
-            "---------W---------N-",
-            "--------W---------N--",
-            "-------W---------N---",
-            "------W---------N----",
-            "-----W---------N-----",
-            "----W---------N------",
-            "---W---------N-------",
-            "--W---------N--------",
-            "-W---------N---------",
-            "W---------N---------E",
-            "---------N---------E-",
-            "--------N---------E--",
-            "-------N---------E---",
-            "------N---------E----",
-            "-----N---------E-----",
-            "----N---------E------",
-            "---N---------E-------",
-            "--N---------E--------",
-            "-N---------E---------",
-            "N---------E---------S",
-            "---------E---------S-",
-            "--------E---------S--",
-            "-------E---------S---",
-            "------E---------S----",
-            "-----E---------S-----",
-            "----E---------S------",
-            "---E---------S-------",
-            "--E---------S--------",
-            "-E---------S---------"
-    };
 
     private static final double DEGTORAD = Math.PI / 180.0;
 
@@ -211,13 +169,30 @@ public class GamepadHelper {
     }
 
     public static String generateCompassDirections(double degrees) {
-        int normalizedDegrees = (int) ((degrees + 180) % 360);
+        char[] directions = new char[21];
+        Arrays.fill(directions, '-');
 
-        if (normalizedDegrees < 0) {
-            normalizedDegrees += 360;
+        int index = Math.floorMod((int) (degrees + 180), 360) / 9;
+
+        if (index >= 10 && index <= 30) {
+            directions[30 - index] = 'N';
         }
 
-        return GamepadHelper.DIRECTIONS[normalizedDegrees / 9];
+        if (index >= 0 && index <= 20) {
+            directions[20 - index] = 'W';
+        }
+
+        if ((index >= 0 && index <= 10) || (index >= 30 && index <= 40)) {
+            directions[index <= 10 ? 10 - index : 40 - index + 10] = 'S';
+        }
+
+        if (index == 0) {
+            directions[0] = 'E';
+        } else if (index >= 20) {
+            directions[40 - index] = 'E';
+        }
+
+        return new String(directions);
     }
 
     public static String getIcon(String code, int size) {
