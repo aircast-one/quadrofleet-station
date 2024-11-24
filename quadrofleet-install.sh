@@ -139,6 +139,8 @@ curl -L -o /home/$OS_USERNAME/quadrofleet/quadrofleet.jar https://quadrofleet.co
 # Create env.properties file with necessary configuration
 cat > /home/$OS_USERNAME/quadrofleet/env.properties <<EOF
 udp.local.port=$LOCAL_PORT
+udp.local.timeout=250
+udp.local.waiting=10000
 udp.target.url=$TARGET_IP
 udp.target.port=$TARGET_PORT
 serial.port=/dev/serial0
