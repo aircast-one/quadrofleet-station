@@ -83,11 +83,14 @@ sudo bash -c "cat > /etc/systemd/system/openvpn3.service <<EOF
 [Unit]
 Description=OpenVPN 3 Linux configuration auto loader and starter
 After=network.target dbus.service
+StartLimitIntervalSec=30
+StartLimitBurst=10
 
 [Service]
 Type=simple
 ExecStart=/usr/sbin/openvpn3-autoload --directory /home/$OS_USERNAME/.openvpn3/autoload
 Restart=always
+RestartSec=5
 User=$OS_USERNAME
 
 [Install]
@@ -104,10 +107,13 @@ sudo bash -c "cat > /etc/systemd/system/gstreamer-stream.service <<EOF
 [Unit]
 Description=GStreamer Streaming Service
 After=network.target
+StartLimitIntervalSec=30
+StartLimitBurst=10
 
 [Service]
 ExecStart=/usr/bin/gst-launch-1.0 libcamerasrc ! video/x-raw,width=480,height=360,framerate=50/1 ! videoflip method=rotate-180 ! videoconvert ! x264enc bitrate=1000 speed-preset=ultrafast tune=zerolatency ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=$TARGET_IP port=$TARGET_PORT
 Restart=always
+RestartSec=5
 User=$OS_USERNAME
 
 [Install]
@@ -144,11 +150,14 @@ sudo bash -c "cat > /etc/systemd/system/quadrofleet-controller.service <<EOF
 [Unit]
 Description=QuadroFleet Controller Service
 After=network.target
+StartLimitIntervalSec=30
+StartLimitBurst=10
 
 [Service]
 WorkingDirectory=/home/$OS_USERNAME/quadrofleet
 ExecStart=/home/$OS_USERNAME/.sdkman/candidates/java/current/bin/java -jar quadrofleet.jar
 Restart=always
+RestartSec=5
 User=$OS_USERNAME
 
 [Install]
