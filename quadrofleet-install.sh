@@ -14,12 +14,16 @@ echo
 
 # Prompt for network settings with default ports
 echo "Network settings."
-read -p "Target IP (UDP Video Stream): " TARGET_IP # 100.96.1.2
-read -p "Target port (UDP Video Stream) [default: 10900]: " TARGET_PORT
-TARGET_PORT=${TARGET_PORT:-10900}  # Default to 10900 if no input
+read -p "Target IP (UDP Video Stream): " TARGET_VIDEO_IP # 100.96.1.2
+read -p "Target port (UDP Video Stream) [default: 10900]: " TARGET_VIDEO_PORT
+TARGET_VIDEO_PORT=${TARGET_VIDEO_PORT:-10900}  # Default to 10900 if no input
 
-read -p "Local port (UDP Control Stream) [default: 10800]: " LOCAL_PORT
-LOCAL_PORT=${LOCAL_PORT:-10800}  # Default to 10800 if no input
+read -p "Local port (UDP Control Stream) [default: 10800]: " LOCAL_TELEMETRY_PORT
+LOCAL_TELEMETRY_PORT=${LOCAL_TELEMETRY_PORT:-10800}  # Default to 10800 if no input
+echo
+
+read -p "Target port (UDP Control Stream) [default: 10800]: " TARGET_TELEMETRY_PORT
+TARGET_TELEMETRY_PORT=${TARGET_TELEMETRY_PORT:-10800}  # Default to 10800 if no input
 echo
 
 # Update system
@@ -111,7 +115,7 @@ StartLimitIntervalSec=30
 StartLimitBurst=10
 
 [Service]
-ExecStart=/usr/bin/gst-launch-1.0 libcamerasrc ! video/x-raw,width=480,height=360,framerate=50/1 ! videoflip method=rotate-180 ! videoconvert ! x264enc bitrate=1000 speed-preset=ultrafast tune=zerolatency ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=$TARGET_IP port=$TARGET_PORT
+ExecStart=/usr/bin/gst-launch-1.0 libcamerasrc ! video/x-raw,width=480,height=360,framerate=50/1 ! videoflip method=rotate-180 ! videoconvert ! x264enc bitrate=1000 speed-preset=ultrafast tune=zerolatency ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=$TARGET_VIDEO_IP port=$TARGET_VIDEO_PORT
 Restart=always
 RestartSec=5
 User=$OS_USERNAME
@@ -138,11 +142,11 @@ curl -L -o /home/$OS_USERNAME/quadrofleet/quadrofleet.jar https://quadrofleet.co
 
 # Create env.properties file with necessary configuration
 cat > /home/$OS_USERNAME/quadrofleet/env.properties <<EOF
-udp.local.port=$LOCAL_PORT
+udp.local.port=$LOCAL_TELEMETRY_PORT
 udp.local.timeout=250
 udp.local.waiting=10000
-udp.target.url=$TARGET_IP
-udp.target.port=$TARGET_PORT
+udp.target.url=$TARGET_TELEMETRY_IP
+udp.target.port=$TARGET_TELEMETRY_PORT
 serial.port=/dev/serial0
 EOF
 
