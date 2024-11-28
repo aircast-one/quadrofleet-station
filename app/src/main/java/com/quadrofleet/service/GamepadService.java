@@ -421,8 +421,8 @@ public class GamepadService {
 
     private String getYesNoIcon(boolean value) {
         return (value) ?
-                GamepadHelper.getIcon("e86c", scaledSize(8)) :
-                GamepadHelper.getIcon("ef4a", scaledSize(8));
+                GamepadHelper.getIcon("e5ca", scaledSize(8)) :
+                GamepadHelper.getIcon("e15b", scaledSize(8));
     }
 
     private String generateCompassInfo() {
