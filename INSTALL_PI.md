@@ -323,3 +323,23 @@ Install SDKMan, Java, and configure the controller application.
 4. Deactivate SSH via Serial Port `No`
 5. Activate Serial port connections `Yes`
 6. Exit & Reboot
+
+## 9. Create an image from SD Card
+
+1. Download and install [Win32 Disk Imager](https://win32diskimager.b-cdn.net/win32diskimager-1.0.0-install.exe)
+2. Download and install [Paragon Linux File Systems for Windows](https://dl.paragon-software.com/demo/linuxwin7_trial.msi).
+3. Use file manager and remove all sensitive data from SD Card
+4. Create an image of SD Card
+5. Use WSL and install PiShrink
+   
+   ```bash
+   wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
+   ```
+   
+   ```bash
+   chmod +x pishrink.sh
+   ```
+   
+   ```bash
+   sudo ./pishrink.sh sdcard.img sdcard_shrunk.img
+   ```
