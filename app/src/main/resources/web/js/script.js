@@ -89,11 +89,11 @@ function updatePitchValue(value) {
 }
 
 function updateMap(latitude, longitude) {
-    if (latitude !== 0 && longitude !== 0) {
+    if (latitude !== 0 && longitude !== 0 && latitude !== lastLatitude && longitude !== lastLongitude) {
         map.getView().setCenter(ol.proj.fromLonLat([longitude, latitude]));
     }
 
-    if (latitude !== lastLatitude && longitude !== lastLongitude) {
+    if (latitude !== lastLatitude || longitude !== lastLongitude) {
         lastLatitude = latitude;
         lastLongitude = longitude;
 
