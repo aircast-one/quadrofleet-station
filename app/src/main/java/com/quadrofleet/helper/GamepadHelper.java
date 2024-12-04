@@ -1,11 +1,13 @@
 package com.quadrofleet.helper;
 
+import com.quadrofleet.model.map.MapPoint;
 import com.quadrofleet.service.FlightConfigService;
 import io.github.libsdl4j.api.event.events.SDL_JoyAxisEvent;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameController;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameControllerButton;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -153,19 +155,26 @@ public class GamepadHelper {
     }
 
     public static String generateTargetDistanceList(int iconSize) {
-        return FlightConfigService.getInstance().getFlightConfig().getMapPoints().stream().map(point -> {
-            double longitude = FlightConfigService.getInstance().getFlightStatus().getLongitude();
-            double latitude = FlightConfigService.getInstance().getFlightStatus().getLatitude();
+        return FlightConfigService.getInstance()
+                .getFlightConfig()
+                .getMapPoints()
+                .stream()
+                .sorted(Comparator.comparing(GamepadHelper::getPointDistance))
+                .map(point -> {
+                    String icon = (point.isHome()) ? getIcon("e88a", iconSize) : getIcon("e55d", iconSize);
 
-            String icon = (point.isHome()) ? getIcon("e88a", iconSize) : getIcon("e55d", iconSize);
+                    return "<p>" + icon + " " + String.format(Locale.US, "%dm", getPointDistance(point)) + "</p>";
+                })
+                .collect(Collectors.joining());
+    }
 
-            return "<p>" + icon + " " + String.format(Locale.US, "%dm", Math.round(haversineDistance(
-                    latitude,
-                    longitude,
-                    point.getLatitude(),
-                    point.getLongitude()
-            ))) + "</p>";
-        }).collect(Collectors.joining());
+    private static long getPointDistance(MapPoint point) {
+        return Math.round(haversineDistance(
+                FlightConfigService.getInstance().getFlightStatus().getLatitude(),
+                FlightConfigService.getInstance().getFlightStatus().getLongitude(),
+                point.getLatitude(),
+                point.getLongitude()
+        ));
     }
 
     public static String generateCompassDirections(double degrees) {
