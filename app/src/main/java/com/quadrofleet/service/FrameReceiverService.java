@@ -23,7 +23,14 @@ public class FrameReceiverService {
 
     private final Thread THREAD;
 
+    private final int udpLocalPort;
+
+    private final int interval;
+
     public FrameReceiverService() {
+        udpLocalPort = ConfigLoader.getInstance().getPropertyAsInteger("telemetry.stream.receiver.port");
+        interval = ConfigLoader.getInstance().getPropertyAsInteger("telemetry.stream.receiver.interval");
+
         THREAD = new Thread(this::frameReceivingProcessing);
     }
 
@@ -36,11 +43,8 @@ public class FrameReceiverService {
     }
 
     private void frameReceivingProcessing() {
-        int udpLocalPort = ConfigLoader.getInstance().getPropertyAsInteger("telemetry.stream.receiver.port");
-        int interval = ConfigLoader.getInstance().getPropertyAsInteger("telemetry.stream.receiver.interval");
-
         try (DatagramSocket socket = new DatagramSocket(udpLocalPort, InetAddress.getByName("0.0.0.0"))) {
-            logger.info("UDP receiver started on port " + udpLocalPort);
+            logger.info("UDP receiver started on port " + udpLocalPort + " with interval " + interval + "ms");
 
             byte[] buffer = new byte[128];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);

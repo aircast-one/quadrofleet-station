@@ -1,5 +1,6 @@
 package com.quadrofleet.service;
 
+import com.quadrofleet.ConfigLoader;
 import com.quadrofleet.model.FlightConfig;
 import systems.beep.crossfire.ChannelBuilder;
 import systems.beep.crossfire.frame.ChannelsFrame;
@@ -16,80 +17,24 @@ public class FrameSenderService {
 
     private final Logger logger = Logger.getLogger(FrameSenderService.class.getName());
 
-    private int interval = 20;
+    private final Thread THREAD;
 
-    private String udpTargetUrl = "100.96.1.3";
+    private final String udpTargetIp;
 
-    private String udpTargetPort = "10800";
+    private final String udpTargetPort;
+
+    private final int interval;
 
     private DatagramSocket socket;
 
-    private final Thread THREAD;
-
     public FrameSenderService() {
+        udpTargetIp = ConfigLoader.getInstance().getProperty("controller.stream.target.ip");
+        udpTargetPort = ConfigLoader.getInstance().getProperty("controller.stream.target.port");
+        interval = ConfigLoader.getInstance().getPropertyAsInteger("controller.stream.target.interval");
+
         initSocket();
 
         THREAD = new Thread(this::sendChannelsFrame);
-    }
-
-    private void sendChannelsFrame() {
-        while (true) {
-            byte[] channelsFrame = ChannelsFrame.builder()
-                    .setAddress(Address.FLIGHT_CONTROLLER)
-                    .setChannels(generateChannelsByFlightConfig(FlightConfigService.getInstance().getFlightConfig()))
-                    .build();
-
-            // Build by config
-
-            sendUdpPacket(channelsFrame);
-
-            try {
-                Thread.sleep(interval);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
-    }
-
-    public void start() {
-        THREAD.start();
-    }
-
-    public void stop() {
-        THREAD.interrupt();
-    }
-
-    private void initSocket() {
-        try {
-            socket = new DatagramSocket();
-
-            logger.info("UDP sender initialized");
-        } catch (SocketException e) {
-            logger.severe(e.getMessage());
-        }
-    }
-
-    private boolean isInitialized() {
-        return socket != null && !socket.isClosed();
-    }
-
-    private void sendUdpPacket(byte[] data) {
-        if (!isInitialized()) {
-            logger.warning("Socket is not initialized");
-            return;
-        }
-
-        try {
-            socket.send(new DatagramPacket(
-                    data,
-                    data.length,
-                    InetAddress.getByName(udpTargetUrl),
-                    Integer.parseInt(udpTargetPort)
-            ));
-        } catch (Exception e) {
-            logger.severe(e.getMessage());
-        }
     }
 
     private static int[] generateChannelsByFlightConfig(FlightConfig flightConfig) {
@@ -125,6 +70,66 @@ public class FrameSenderService {
         return (int) (TelemetryHelper.FAILSAFE_CRSF_VALUE
                 + Math.max(0, Math.min(1, flightConfig.getThrottle()))
                 * (TelemetryHelper.MAX_MICROSECONDS_VALUE - TelemetryHelper.FAILSAFE_CRSF_VALUE));
+    }
+
+    private void sendChannelsFrame() {
+        while (true) {
+            byte[] channelsFrame = ChannelsFrame.builder()
+                    .setAddress(Address.FLIGHT_CONTROLLER)
+                    .setChannels(generateChannelsByFlightConfig(FlightConfigService.getInstance().getFlightConfig()))
+                    .build();
+
+            // Build by config
+
+            sendUdpPacket(channelsFrame);
+
+            try {
+                Thread.sleep(interval);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+    }
+
+    public void start() {
+        THREAD.start();
+    }
+
+    public void stop() {
+        THREAD.interrupt();
+    }
+
+    private void initSocket() {
+        try {
+            socket = new DatagramSocket();
+
+            logger.info("UDP sender initialized: " + udpTargetIp + ":" + udpTargetPort + " with interval " + interval + "ms");
+        } catch (SocketException e) {
+            logger.severe(e.getMessage());
+        }
+    }
+
+    private boolean isInitialized() {
+        return socket != null && !socket.isClosed();
+    }
+
+    private void sendUdpPacket(byte[] data) {
+        if (!isInitialized()) {
+            logger.warning("Socket is not initialized");
+            return;
+        }
+
+        try {
+            socket.send(new DatagramPacket(
+                    data,
+                    data.length,
+                    InetAddress.getByName(udpTargetIp),
+                    Integer.parseInt(udpTargetPort)
+            ));
+        } catch (Exception e) {
+            logger.severe(e.getMessage());
+        }
     }
 
 }
