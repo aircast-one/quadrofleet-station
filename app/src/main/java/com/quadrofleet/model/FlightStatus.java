@@ -24,6 +24,19 @@ public class FlightStatus {
 
     private LocalDateTime lastPacket;
 
+    // OpenIPC Telemetry
+
+    private int boardTemperature;
+
+    private String rxSpeed;
+
+    private String txSpeed;
+
+    private String rssi;
+
+    private String snr;
+
+    private String gsmStatus;
 
     // Battery
 
@@ -65,6 +78,13 @@ public class FlightStatus {
 
         setLastPacket(null);
 
+        setBoardTemperature(0);
+        setRxSpeed("");
+        setTxSpeed("");
+        setRssi("");
+        setSnr("");
+        setGsmStatus("");
+
         setVoltage(0);
         setCurrent(0);
         setFuel(0);
@@ -94,13 +114,66 @@ public class FlightStatus {
         return lastPacket != null && LocalDateTime.now().minusSeconds(10).isAfter(lastPacket);
     }
 
-
     public LocalDateTime getLastPacket() {
         return lastPacket;
     }
 
     public FlightStatus setLastPacket(LocalDateTime lastPacket) {
         this.lastPacket = lastPacket;
+        return this;
+    }
+
+    public int getBoardTemperature() {
+        return boardTemperature;
+    }
+
+    public FlightStatus setBoardTemperature(int boardTemperature) {
+        this.boardTemperature = boardTemperature;
+        return this;
+    }
+
+    public String getRxSpeed() {
+        return rxSpeed;
+    }
+
+    public FlightStatus setRxSpeed(String rxSpeed) {
+        this.rxSpeed = rxSpeed;
+        return this;
+    }
+
+    public String getTxSpeed() {
+        return txSpeed;
+    }
+
+    public FlightStatus setTxSpeed(String txSpeed) {
+        this.txSpeed = txSpeed;
+        return this;
+    }
+
+    public String getRssi() {
+        return rssi;
+    }
+
+    public FlightStatus setRssi(String rssi) {
+        this.rssi = rssi;
+        return this;
+    }
+
+    public String getSnr() {
+        return snr;
+    }
+
+    public FlightStatus setSnr(String snr) {
+        this.snr = snr;
+        return this;
+    }
+
+    public String getGsmStatus() {
+        return gsmStatus;
+    }
+
+    public FlightStatus setGsmStatus(String gsmStatus) {
+        this.gsmStatus = gsmStatus;
         return this;
     }
 
