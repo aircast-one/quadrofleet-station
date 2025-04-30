@@ -282,7 +282,7 @@ public class GamepadService {
                 dateTimeLabel.setText(generateDateTimeInfo());
 
                 batteryLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
-                batteryLabel.setText(generateBatteryInfo());
+                batteryLabel.setText(generateBatteryGSMInfo());
 
                 pitchRollLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
                 pitchRollLabel.setText(generatePitchRollInfo());
@@ -307,6 +307,7 @@ public class GamepadService {
         SpringLayout springLayout = new SpringLayout();
         result.setLayout(springLayout);
 
+        // Top / Left - Date/Time
         springLayout.putConstraint(SpringLayout.WEST,
                 dateTimeLabel,
                 30,
@@ -318,6 +319,7 @@ public class GamepadService {
                 SpringLayout.NORTH,
                 result);
 
+        // Top / Right - Battery
         springLayout.putConstraint(SpringLayout.EAST,
                 batteryLabel,
                 -30,
@@ -329,6 +331,7 @@ public class GamepadService {
                 SpringLayout.NORTH,
                 result);
 
+        // Bottom / Left - Pitch/Roll
         springLayout.putConstraint(SpringLayout.WEST,
                 pitchRollLabel,
                 30,
@@ -340,6 +343,7 @@ public class GamepadService {
                 SpringLayout.SOUTH,
                 result);
 
+        // Bottom / Right - GPS
         springLayout.putConstraint(SpringLayout.EAST,
                 gpsLabel,
                 -30,
@@ -351,6 +355,7 @@ public class GamepadService {
                 SpringLayout.SOUTH,
                 result);
 
+        // Top / Center - Compass
         springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER,
                 compassLabel,
                 scaledSize(-25),
@@ -362,6 +367,7 @@ public class GamepadService {
                 SpringLayout.NORTH,
                 result);
 
+        // Bottom / Center - Ground Speed
         springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER,
                 groundSpeedLabel,
                 scaledSize(-25),
@@ -373,6 +379,7 @@ public class GamepadService {
                 SpringLayout.SOUTH,
                 result);
 
+        // Right / Center - Altitude
         springLayout.putConstraint(SpringLayout.EAST,
                 altitudeLabel,
                 -30,
@@ -384,6 +391,7 @@ public class GamepadService {
                 SpringLayout.VERTICAL_CENTER,
                 result);
 
+        // Left / Center - Distance
         springLayout.putConstraint(SpringLayout.WEST,
                 targetDistanceLabel,
                 30,
@@ -440,7 +448,7 @@ public class GamepadService {
                 "</html>";
     }
 
-    private String generateBatteryInfo() {
+    private String generateBatteryGSMInfo() {
         String batteryIcon = GamepadHelper.getIcon("e1a4", scaledSize(8));
 
         long remainingInt = Math.round(FlightConfigService.getInstance().getFlightStatus().getRemaining());
@@ -449,6 +457,17 @@ public class GamepadService {
         String current = String.format(Locale.US, "%,.2fA", FlightConfigService.getInstance().getFlightStatus().getCurrent());
         String remaining = remainingInt + "%";
         String fuel = Math.round(FlightConfigService.getInstance().getFlightStatus().getFuel()) + "mAh";
+
+        String boardTemperature = String.format(Locale.US, "Temp: %d°C", FlightConfigService.getInstance().getFlightStatus().getBoardTemperature());
+        String rxTx = "Rx: " +
+                FlightConfigService.getInstance().getFlightStatus().getRxSpeed() +
+                " / Tx: " +
+                FlightConfigService.getInstance().getFlightStatus().getTxSpeed();
+        String rssiSnr = "RSSI: " + FlightConfigService.getInstance().getFlightStatus().getRssi() +
+                " dBm " +
+                "SNR: " +
+                FlightConfigService.getInstance().getFlightStatus().getSnr() +
+                " dB";
 
         if (remainingInt > 50 && remainingInt <= 75) {
             batteryIcon = GamepadHelper.getIcon("ebd4", scaledSize(8));
@@ -461,6 +480,10 @@ public class GamepadService {
         return "<html>" +
                 "<p>" + batteryIcon + " " + remaining + " " + fuel + "</p>" +
                 "<p>" + voltage + " " + current + "</p>" +
+                "<p>&nbsp;</p>" +
+                "<p>" + boardTemperature + "</p>" +
+                "<p>" + rxTx + "</p>" +
+                "<p>" + rssiSnr + "</p>" +
                 "</html>";
     }
 

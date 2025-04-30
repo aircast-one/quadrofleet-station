@@ -44,7 +44,7 @@ public class FrameReceiverService {
 
     private void frameReceivingProcessing() {
         try (DatagramSocket socket = new DatagramSocket(udpLocalPort, InetAddress.getByName("0.0.0.0"))) {
-            logger.info("UDP receiver started on port " + udpLocalPort + " with interval " + interval + "ms");
+            logger.info("Telemetry UDP receiver started on port " + udpLocalPort + " with interval " + interval + "ms");
 
             byte[] buffer = new byte[128];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
