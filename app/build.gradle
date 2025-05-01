@@ -21,12 +21,19 @@ dependencies {
     implementation 'net.java.dev.jna:jna:5.15.0'
     implementation 'net.java.dev.jna:jna-platform:5.15.0'
 
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.platform:junit-platform-launcher:1.12.2'
+
 }
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+test {
+    useJUnitPlatform()
 }
 
 application {
