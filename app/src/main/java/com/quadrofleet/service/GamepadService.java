@@ -497,10 +497,10 @@ public class GamepadService {
 
     private String generateGPSInfo() {
         return "<html>" +
-                "<p>Lat " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLatitude()) + "</p>" +
-                "<p>Lon " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLongitude()) + "</p>" +
                 "<p>" + GamepadHelper.getIcon("eb3a",
                 scaledSize(8)) + " " + FlightConfigService.getInstance().getFlightStatus().getSatellites() + "</p>" +
+                "<p>Lat " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLatitude()) + "</p>" +
+                "<p>Lon " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLongitude()) + "</p>" +
                 "</html>";
     }
 
