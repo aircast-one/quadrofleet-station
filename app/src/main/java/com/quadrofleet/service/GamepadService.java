@@ -458,16 +458,12 @@ public class GamepadService {
         String remaining = remainingInt + "%";
         String fuel = Math.round(FlightConfigService.getInstance().getFlightStatus().getFuel()) + "mAh";
 
-        String boardTemperature = String.format(Locale.US, "Temp: %d°C", FlightConfigService.getInstance().getFlightStatus().getBoardTemperature());
-        String rxTx = "Rx: " +
-                FlightConfigService.getInstance().getFlightStatus().getRxSpeed() +
-                " / Tx: " +
-                FlightConfigService.getInstance().getFlightStatus().getTxSpeed();
-        String rssiSnr = "RSSI: " + FlightConfigService.getInstance().getFlightStatus().getRssi() +
-                " dBm " +
-                "SNR: " +
-                FlightConfigService.getInstance().getFlightStatus().getSnr() +
-                " dB";
+        String boardTemperature = GamepadHelper.getIcon("e1ff", scaledSize(8)) + " " +
+                String.format(Locale.US, "%d°C", FlightConfigService.getInstance().getFlightStatus().getBoardTemperature());
+        String rx = "Rx: " + FlightConfigService.getInstance().getFlightStatus().getRxSpeed() + " KB/s";
+        String tx = "Tx: " + FlightConfigService.getInstance().getFlightStatus().getTxSpeed() + " KB/s";
+        String rssi = "RSSI: " + FlightConfigService.getInstance().getFlightStatus().getRssi();
+        String snr = "SNR: " + FlightConfigService.getInstance().getFlightStatus().getSnr();
 
         if (remainingInt > 50 && remainingInt <= 75) {
             batteryIcon = GamepadHelper.getIcon("ebd4", scaledSize(8));
@@ -482,8 +478,10 @@ public class GamepadService {
                 "<p>" + voltage + " " + current + "</p>" +
                 "<p>&nbsp;</p>" +
                 "<p>" + boardTemperature + "</p>" +
-                "<p>" + rxTx + "</p>" +
-                "<p>" + rssiSnr + "</p>" +
+                "<p>" + rx + "</p>" +
+                "<p>" + tx + "</p>" +
+                "<p>" + rssi + "</p>" +
+                "<p>" + snr + "</p>" +
                 "</html>";
     }
 
