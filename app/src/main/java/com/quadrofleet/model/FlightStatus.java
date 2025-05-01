@@ -28,13 +28,13 @@ public class FlightStatus {
 
     private int boardTemperature;
 
-    private String rxSpeed;
+    private int rxSpeed;
 
-    private String txSpeed;
+    private int txSpeed;
 
-    private String rssi;
+    private int rssi;
 
-    private String snr;
+    private int snr;
 
     private String gsmStatus;
 
@@ -79,10 +79,10 @@ public class FlightStatus {
         setLastPacket(null);
 
         setBoardTemperature(0);
-        setRxSpeed("");
-        setTxSpeed("");
-        setRssi("");
-        setSnr("");
+        setRxSpeed(0);
+        setTxSpeed(0);
+        setRssi(0);
+        setSnr(0);
         setGsmStatus("");
 
         setVoltage(0);
@@ -132,38 +132,38 @@ public class FlightStatus {
         return this;
     }
 
-    public String getRxSpeed() {
+    public int getRxSpeed() {
         return rxSpeed;
     }
 
-    public FlightStatus setRxSpeed(String rxSpeed) {
+    public FlightStatus setRxSpeed(int rxSpeed) {
         this.rxSpeed = rxSpeed;
         return this;
     }
 
-    public String getTxSpeed() {
+    public int getTxSpeed() {
         return txSpeed;
     }
 
-    public FlightStatus setTxSpeed(String txSpeed) {
+    public FlightStatus setTxSpeed(int txSpeed) {
         this.txSpeed = txSpeed;
         return this;
     }
 
-    public String getRssi() {
+    public int getRssi() {
         return rssi;
     }
 
-    public FlightStatus setRssi(String rssi) {
+    public FlightStatus setRssi(int rssi) {
         this.rssi = rssi;
         return this;
     }
 
-    public String getSnr() {
+    public int getSnr() {
         return snr;
     }
 
-    public FlightStatus setSnr(String snr) {
+    public FlightStatus setSnr(int snr) {
         this.snr = snr;
         return this;
     }

@@ -7,6 +7,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class OIPCReceiverService {
 
@@ -56,13 +58,22 @@ public class OIPCReceiverService {
         String telemetry = new String(bytes); // "Temp: 43 C, R: 11 KB/s, T: 358 KB/s, RSSI: 0, SNR: 0"
 
         if (telemetry.contains("RSSI")) {
-            String[] parts = telemetry.split(", ");
-            if (parts.length >= 5) {
-                FlightConfigService.getInstance().getFlightStatus().setBoardTemperature(Integer.parseInt(parts[0].split(": ")[1]));
-                FlightConfigService.getInstance().getFlightStatus().setRxSpeed(parts[1].split(": ")[1]);
-                FlightConfigService.getInstance().getFlightStatus().setTxSpeed(parts[2].split(": ")[1]);
-                FlightConfigService.getInstance().getFlightStatus().setRssi(parts[3].split(": ")[1]);
-                FlightConfigService.getInstance().getFlightStatus().setSnr(parts[4].split(": ")[1]);
+            Pattern pattern = Pattern.compile("Temp: (\\d+) C, R: (\\d+) KB/s, T: (\\d+) KB/s, RSSI: (\\d+), SNR: (\\d+)\\n");
+            Matcher matcher = pattern.matcher(telemetry);
+
+            if (matcher.matches()) {
+                int temperature = Integer.parseInt(matcher.group(1));
+                int rxSpeed = Integer.parseInt(matcher.group(2));
+                int txSpeed = Integer.parseInt(matcher.group(3));
+                int rssi = Integer.parseInt(matcher.group(4));
+                int snr = Integer.parseInt(matcher.group(5));
+
+                // Set values in FlightStatus
+                FlightConfigService.getInstance().getFlightStatus().setBoardTemperature(temperature);
+                FlightConfigService.getInstance().getFlightStatus().setRxSpeed(rxSpeed);
+                FlightConfigService.getInstance().getFlightStatus().setTxSpeed(txSpeed);
+                FlightConfigService.getInstance().getFlightStatus().setRssi(rssi);
+                FlightConfigService.getInstance().getFlightStatus().setSnr(snr);
             }
         } else {
             FlightConfigService.getInstance().getFlightStatus().setGsmStatus(telemetry);
