@@ -1,23 +1,12 @@
 package com.quadrofleet.service;
 
 import com.quadrofleet.helper.GamepadHelper;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
 import io.github.libsdl4j.api.event.SDL_Event;
 import io.github.libsdl4j.api.event.events.SDL_JoyAxisEvent;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameController;
 import io.github.libsdl4j.api.joystick.SDL_JoystickID;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static io.github.libsdl4j.api.Sdl.SDL_Init;
@@ -35,12 +24,6 @@ public class GamepadService {
     private final Logger logger = Logger.getLogger(GamepadService.class.getName());
 
     private final Thread THREAD;
-
-    private JFrame overlay;
-
-    private double windowHeightParam;
-
-    private double windowWidthParam;
 
     public GamepadService() {
         THREAD = new Thread(this::SDLInitialization);
@@ -70,46 +53,7 @@ public class GamepadService {
         SDL_GameController sdlGameController = null;
         SDL_Event evt = new SDL_Event();
 
-        fontInit();
-
-        // Overlay
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-
-        executor.scheduleAtFixedRate(() -> {
-            WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, "GStreamer D3D video sink (internal window)");
-
-            if (hwnd != null) {
-                if (overlay == null) {
-                    setupOverlay();
-                }
-
-                WinDef.RECT rect = new WinDef.RECT();
-                User32.INSTANCE.GetWindowRect(hwnd, rect);
-
-                SwingUtilities.invokeLater(() -> {
-                    if (!overlay.isVisible()) {
-                        overlay.setVisible(true);
-                    }
-
-                    windowHeightParam = (double) (rect.bottom - rect.top) / 480;
-                    windowWidthParam = (double) (rect.right - rect.left) / 640;
-
-                    overlay.setSize(rect.right - rect.left, rect.bottom - rect.top);
-                    overlay.setLocation(rect.left, rect.top);
-                });
-            }
-
-            if (overlay != null && (!overlay.isVisible() || hwnd == null)) {
-                SwingUtilities.invokeLater(() -> overlay.setVisible(false));
-            }
-        }, 1000, 20, TimeUnit.MILLISECONDS);
-
         while (ConfigService.getInstance().isRunSDLEventLoop()) {
-
-            if (overlay != null && overlay.isVisible()) {
-                overlay.repaint();
-            }
-
             if (sdlGameController == null) {
                 sdlGameController = SDL_GameControllerOpen(0);
             }
@@ -139,17 +83,6 @@ public class GamepadService {
         }
 
         SDL_Quit();
-    }
-
-    private void fontInit() {
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("MaterialIcons-Regular.ttf")) {
-            if (inputStream != null) {
-                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(Font.createFont(Font.TRUETYPE_FONT, inputStream));
-            }
-
-        } catch (IOException | FontFormatException e) {
-            logger.warning("Error by loading FontAwesome");
-        }
     }
 
     private void updateGamepadButtons(SDL_GameController sdlGameController, SDL_JoyAxisEvent event) {
@@ -228,304 +161,6 @@ public class GamepadService {
             // Right Stick Y Axis
             FlightConfigService.getInstance().getFlightConfig().setThrottle(GamepadHelper.convertShortToDouble(event.value));
         }
-    }
-
-    private void setupOverlay() {
-        overlay = new JFrame();
-        overlay.setType(javax.swing.JFrame.Type.UTILITY);
-        overlay.setUndecorated(true);
-        overlay.setBackground(new Color(0, 0, 0, 0)); // Transparent background
-        overlay.setAlwaysOnTop(true);
-
-        overlay.add(generateTelemetryPanel());
-
-        overlay.setVisible(true);
-    }
-
-    private JPanel generateTelemetryPanel() {
-        JLabel dateTimeLabel = new JLabel("NW");
-        dateTimeLabel.setForeground(Color.WHITE);
-
-        JLabel batteryLabel = new JLabel("NE");
-        batteryLabel.setForeground(Color.WHITE);
-        batteryLabel.setVerticalTextPosition(SwingConstants.CENTER);
-        batteryLabel.setHorizontalTextPosition(SwingConstants.CENTER);
-
-        JLabel pitchRollLabel = new JLabel("SW");
-        pitchRollLabel.setForeground(Color.WHITE);
-
-        JLabel gpsLabel = new JLabel("SE");
-        gpsLabel.setForeground(Color.WHITE);
-
-        JLabel compassLabel = new JLabel("Compass");
-        compassLabel.setForeground(Color.WHITE);
-
-        JLabel groundSpeedLabel = new JLabel("Ground speed");
-        groundSpeedLabel.setForeground(Color.WHITE);
-
-        JLabel altitudeLabel = new JLabel("Altitude");
-        altitudeLabel.setForeground(Color.WHITE);
-
-        JLabel targetDistanceLabel = new JLabel("Target distance");
-        targetDistanceLabel.setForeground(Color.WHITE);
-
-        Font fontConsole = new Font("Consolas", Font.PLAIN, 14);
-
-        //
-
-        JPanel result = new JPanel(null) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-
-                dateTimeLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
-                dateTimeLabel.setText(generateDateTimeInfo());
-
-                batteryLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
-                batteryLabel.setText(generateBatteryGSMInfo());
-
-                pitchRollLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
-                pitchRollLabel.setText(generatePitchRollInfo());
-
-                gpsLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
-                gpsLabel.setText(generateGPSInfo());
-
-                compassLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
-                compassLabel.setText(generateCompassInfo());
-
-                groundSpeedLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
-                groundSpeedLabel.setText(generateGroundSpeedInfo());
-
-                altitudeLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
-                altitudeLabel.setText(generateAltitudeInfo());
-
-                targetDistanceLabel.setFont(fontConsole.deriveFont(Font.PLAIN, scaledSize(14)));
-                targetDistanceLabel.setText(generateTargetDistanceInfo());
-            }
-        };
-
-        SpringLayout springLayout = new SpringLayout();
-        result.setLayout(springLayout);
-
-        // Top / Left - Date/Time
-        springLayout.putConstraint(SpringLayout.WEST,
-                dateTimeLabel,
-                30,
-                SpringLayout.WEST,
-                result);
-        springLayout.putConstraint(SpringLayout.NORTH,
-                dateTimeLabel,
-                50,
-                SpringLayout.NORTH,
-                result);
-
-        // Top / Right - Battery
-        springLayout.putConstraint(SpringLayout.EAST,
-                batteryLabel,
-                -30,
-                SpringLayout.EAST,
-                result);
-        springLayout.putConstraint(SpringLayout.NORTH,
-                batteryLabel,
-                50,
-                SpringLayout.NORTH,
-                result);
-
-        // Bottom / Left - Pitch/Roll
-        springLayout.putConstraint(SpringLayout.WEST,
-                pitchRollLabel,
-                30,
-                SpringLayout.WEST,
-                result);
-        springLayout.putConstraint(SpringLayout.SOUTH,
-                pitchRollLabel,
-                -20,
-                SpringLayout.SOUTH,
-                result);
-
-        // Bottom / Right - GPS
-        springLayout.putConstraint(SpringLayout.EAST,
-                gpsLabel,
-                -30,
-                SpringLayout.EAST,
-                result);
-        springLayout.putConstraint(SpringLayout.SOUTH,
-                gpsLabel,
-                -20,
-                SpringLayout.SOUTH,
-                result);
-
-        // Top / Center - Compass
-        springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER,
-                compassLabel,
-                scaledSize(-25),
-                SpringLayout.HORIZONTAL_CENTER,
-                result);
-        springLayout.putConstraint(SpringLayout.NORTH,
-                compassLabel,
-                50,
-                SpringLayout.NORTH,
-                result);
-
-        // Bottom / Center - Ground Speed
-        springLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER,
-                groundSpeedLabel,
-                scaledSize(-25),
-                SpringLayout.HORIZONTAL_CENTER,
-                result);
-        springLayout.putConstraint(SpringLayout.SOUTH,
-                groundSpeedLabel,
-                -20,
-                SpringLayout.SOUTH,
-                result);
-
-        // Right / Center - Altitude
-        springLayout.putConstraint(SpringLayout.EAST,
-                altitudeLabel,
-                -30,
-                SpringLayout.EAST,
-                result);
-        springLayout.putConstraint(SpringLayout.VERTICAL_CENTER,
-                altitudeLabel,
-                0,
-                SpringLayout.VERTICAL_CENTER,
-                result);
-
-        // Left / Center - Distance
-        springLayout.putConstraint(SpringLayout.WEST,
-                targetDistanceLabel,
-                30,
-                SpringLayout.WEST,
-                result);
-        springLayout.putConstraint(SpringLayout.VERTICAL_CENTER,
-                targetDistanceLabel,
-                0,
-                SpringLayout.VERTICAL_CENTER,
-                result);
-
-        result.add(dateTimeLabel);
-        result.add(batteryLabel);
-        result.add(pitchRollLabel);
-        result.add(gpsLabel);
-        result.add(compassLabel);
-        result.add(groundSpeedLabel);
-        result.add(altitudeLabel);
-        result.add(targetDistanceLabel);
-
-        result.setOpaque(false);
-
-        return result;
-    }
-
-    private String generateDateTimeInfo() {
-        return "<html>" +
-                "<p>" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss.SS")) + "</p>" +
-                "<p>&nbsp;</p>" +
-                "<p>Armed&nbsp;&nbsp;&nbsp;" + getYesNoIcon(FlightConfigService.getInstance().getFlightStatus().isArmed()) + "</p>" +
-                "<p>Angle&nbsp;&nbsp;&nbsp;" + getYesNoIcon(FlightConfigService.getInstance().getFlightStatus().isAngleMode()) + "</p>" +
-                "<p>AltHold&nbsp;" + getYesNoIcon(FlightConfigService.getInstance().getFlightStatus().isAltHoldMode()) + "</p>" +
-                "</html>";
-    }
-
-    private String getYesNoIcon(boolean value) {
-        return (value) ?
-                GamepadHelper.getIcon("e5ca", scaledSize(8)) :
-                GamepadHelper.getIcon("e15b", scaledSize(8));
-    }
-
-    private String generateCompassInfo() {
-        String flightMode = (FlightConfigService.getInstance().getFlightStatus().getFlightMode() != null) ?
-                FlightConfigService.getInstance().getFlightStatus().getFlightMode().replace("!", "") :
-                "----";
-
-        return "<html>" +
-                "<p style='text-align:center;'>" + flightMode + "</p>" +
-                "<p>" + GamepadHelper.generateCompassDirections(FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
-                "<p>" + GamepadHelper.drawTarget(
-                (int) FlightConfigService.getInstance().getFlightStatus().getYaw(),
-                GamepadHelper.getIcon("e88a", scaledSize(8)),
-                GamepadHelper.getIcon("e55d", scaledSize(8))) + "</p>" +
-                "</html>";
-    }
-
-    private String generateBatteryGSMInfo() {
-        String batteryIcon = GamepadHelper.getIcon("e1a4", scaledSize(8));
-
-        long remainingInt = Math.round(FlightConfigService.getInstance().getFlightStatus().getRemaining());
-
-        String voltage = String.format(Locale.US, "%,.2fV", FlightConfigService.getInstance().getFlightStatus().getVoltage());
-        String current = String.format(Locale.US, "%,.2fA", FlightConfigService.getInstance().getFlightStatus().getCurrent());
-        String remaining = remainingInt + "%";
-        String fuel = Math.round(FlightConfigService.getInstance().getFlightStatus().getFuel()) + "mAh";
-
-        String boardTemperature = GamepadHelper.getIcon("e1ff", scaledSize(8)) + " " +
-                String.format(Locale.US, "%d°C", FlightConfigService.getInstance().getFlightStatus().getBoardTemperature());
-        String rx = "Rx: " + FlightConfigService.getInstance().getFlightStatus().getRxSpeed() + " KB/s";
-        String tx = "Tx: " + FlightConfigService.getInstance().getFlightStatus().getTxSpeed() + " KB/s";
-        String rssi = "RSSI: " + FlightConfigService.getInstance().getFlightStatus().getRssi();
-        String snr = "SNR: " + FlightConfigService.getInstance().getFlightStatus().getSnr();
-
-        if (remainingInt > 50 && remainingInt <= 75) {
-            batteryIcon = GamepadHelper.getIcon("ebd4", scaledSize(8));
-        } else if (remainingInt >= 25 && remainingInt < 50) {
-            batteryIcon = GamepadHelper.getIcon("ebe2", scaledSize(8));
-        } else if (remainingInt < 25) {
-            batteryIcon = GamepadHelper.getIcon("e19c", scaledSize(8));
-        }
-
-        return "<html>" +
-                "<p>" + batteryIcon + " " + remaining + " " + fuel + "</p>" +
-                "<p>" + voltage + " " + current + "</p>" +
-                "<p>&nbsp;</p>" +
-                "<p>" + boardTemperature + "</p>" +
-                "<p>" + rx + "</p>" +
-                "<p>" + tx + "</p>" +
-                "<p>" + rssi + "</p>" +
-                "<p>" + snr + "</p>" +
-                "</html>";
-    }
-
-    private String generateAltitudeInfo() {
-        return "<html>" +
-                "<p>" + GamepadHelper.getIcon("ea16", scaledSize(8)) +
-                " " +
-                FlightConfigService.getInstance().getFlightStatus().getAltitude() + "m</p>" +
-                "</html>";
-    }
-
-    private String generateGPSInfo() {
-        return "<html>" +
-                "<p>" + GamepadHelper.getIcon("eb3a",
-                scaledSize(8)) + " " + FlightConfigService.getInstance().getFlightStatus().getSatellites() + "</p>" +
-                "<p>Lat " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLatitude()) + "</p>" +
-                "<p>Lon " + String.format(Locale.US, "%,.8f", FlightConfigService.getInstance().getFlightStatus().getLongitude()) + "</p>" +
-                "</html>";
-    }
-
-    private String generateGroundSpeedInfo() {
-        return "<html>" +
-                "<p>" +
-                GamepadHelper.getIcon("e539", scaledSize(8)) +
-                " " +
-                String.format(Locale.US, "%,.2fm/s", FlightConfigService.getInstance().getFlightStatus().getGroundSpeed()) +
-                "</p>" +
-                "</html>";
-    }
-
-    private String generatePitchRollInfo() {
-        return "<html>" +
-                "<p>" + String.format(Locale.US, "P %,.2f°", FlightConfigService.getInstance().getFlightStatus().getPitch()) + "</p>" +
-                "<p>" + String.format(Locale.US, "R %,.2f°", FlightConfigService.getInstance().getFlightStatus().getRoll()) + "</p>" +
-                "<p>" + String.format(Locale.US, "Y %,.2f°", FlightConfigService.getInstance().getFlightStatus().getYaw()) + "</p>" +
-                "</html>";
-    }
-
-    private String generateTargetDistanceInfo() {
-        return "<html>" + GamepadHelper.generateTargetDistanceList(scaledSize((8))) + "</html>";
-    }
-
-    private int scaledSize(int size) {
-        return (int) (windowHeightParam * size);
     }
 
 }
