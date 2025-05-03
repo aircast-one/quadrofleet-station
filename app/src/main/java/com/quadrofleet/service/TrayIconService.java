@@ -2,8 +2,6 @@ package com.quadrofleet.service;
 
 import com.quadrofleet.App;
 import com.quadrofleet.ConfigLoader;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,7 +29,6 @@ public class TrayIconService {
         }
 
         PopupMenu trayPopupMenu = new PopupMenu();
-        trayPopupMenu.add(generateVideoStreamAction());
         trayPopupMenu.add(generateMapAction());
         trayPopupMenu.add(generateAboutAction());
         trayPopupMenu.add(generateExitAction());
@@ -48,14 +45,6 @@ public class TrayIconService {
         } catch (AWTException awtException) {
             //
         }
-    }
-
-    private static MenuItem generateVideoStreamAction() {
-        MenuItem result = new MenuItem(ConfigService.getInstance().getBundleString("tray.video.tooltip"));
-
-        result.addActionListener(e -> executeGStreamer());
-
-        return result;
     }
 
     private static MenuItem generateMapAction() {
@@ -110,37 +99,6 @@ public class TrayIconService {
         });
 
         return result;
-    }
-
-    private static void executeGStreamer() {
-        String[] command = {
-                "gst-launch-1.0.exe",
-                "udpsrc",
-                "port=" + ConfigLoader.getInstance().getProperty("video.stream.receiver.port"),
-                "!",
-                "application/x-rtp,encoding-name=H265,payload=96",
-                "!",
-                "rtph265depay",
-                "!",
-                "h265parse",
-                "!",
-                "avdec_h265",
-                "!",
-                "d3dvideosink",
-                "sync=false"
-        };
-
-        try {
-            WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, "GStreamer D3D video sink (internal window)");
-
-            if (hwnd != null) {
-                return;
-            }
-
-            new ProcessBuilder(command).start();
-        } catch (IOException e) {
-            //
-        }
     }
 
 }
