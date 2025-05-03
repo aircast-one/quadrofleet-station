@@ -7,9 +7,6 @@ import io.github.libsdl4j.api.gamecontroller.SDL_GameController;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameControllerButton;
 
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Locale;
-import java.util.stream.Collectors;
 
 import static io.github.libsdl4j.api.gamecontroller.SdlGamecontroller.SDL_GameControllerGetButton;
 
@@ -100,7 +97,7 @@ public class GamepadHelper {
         String[] result = new String[21];
 
         for (int i = 0; i < 21; i++) {
-            result[i] = "&nbsp";
+            result[i] = " ";
         }
 
         FlightConfigService.getInstance().getFlightConfig().getMapPoints().forEach(point -> {
@@ -154,21 +151,7 @@ public class GamepadHelper {
         return 6371e3 * c;
     }
 
-    public static String generateTargetDistanceList(int iconSize) {
-        return FlightConfigService.getInstance()
-                .getFlightConfig()
-                .getMapPoints()
-                .stream()
-                .sorted(Comparator.comparing(GamepadHelper::getPointDistance))
-                .map(point -> {
-                    String icon = (point.isHome()) ? getIcon("e88a", iconSize) : getIcon("e55d", iconSize);
-
-                    return "<p>" + icon + " " + String.format(Locale.US, "%dm", getPointDistance(point)) + "</p>";
-                })
-                .collect(Collectors.joining());
-    }
-
-    private static long getPointDistance(MapPoint point) {
+    public static long getPointDistance(MapPoint point) {
         return Math.round(haversineDistance(
                 FlightConfigService.getInstance().getFlightStatus().getLatitude(),
                 FlightConfigService.getInstance().getFlightStatus().getLongitude(),
@@ -202,10 +185,6 @@ public class GamepadHelper {
         }
 
         return new String(directions);
-    }
-
-    public static String getIcon(String code, int size) {
-        return "<span style=\"font-family: Material Icons; font-size: " + size + "px\">&#x" + code + "</span>";
     }
 
 }

@@ -1,0 +1,13 @@
+.label {
+    -fx-font-family: Consolas;
+    -fx-text-fill: white;
+    -fx-font-size: 20;
+    -fx-padding: 10;
+}
+
+.icon {
+    -fx-font-family: "Material Icons";
+    -fx-text-fill: white;
+    -fx-font-size: 25;
+    -fx-padding: 10;
+}
