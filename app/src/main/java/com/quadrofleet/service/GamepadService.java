@@ -4,6 +4,7 @@ import com.quadrofleet.helper.GamepadHelper;
 import io.github.libsdl4j.api.event.SDL_Event;
 import io.github.libsdl4j.api.event.events.SDL_JoyAxisEvent;
 import io.github.libsdl4j.api.gamecontroller.SDL_GameController;
+import io.github.libsdl4j.api.joystick.SDL_Joystick;
 import io.github.libsdl4j.api.joystick.SDL_JoystickID;
 
 import javax.swing.*;
@@ -14,10 +15,16 @@ import static io.github.libsdl4j.api.Sdl.SDL_Quit;
 import static io.github.libsdl4j.api.SdlSubSystemConst.SDL_INIT_EVERYTHING;
 import static io.github.libsdl4j.api.error.SdlError.SDL_GetError;
 import static io.github.libsdl4j.api.event.SDL_EventType.SDL_CONTROLLERDEVICEADDED;
+import static io.github.libsdl4j.api.event.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED;
 import static io.github.libsdl4j.api.event.SDL_EventType.SDL_JOYAXISMOTION;
+import static io.github.libsdl4j.api.event.SDL_EventType.SDL_JOYDEVICEADDED;
+import static io.github.libsdl4j.api.event.SDL_EventType.SDL_JOYDEVICEREMOVED;
 import static io.github.libsdl4j.api.event.SdlEvents.SDL_PollEvent;
+import static io.github.libsdl4j.api.gamecontroller.SdlGamecontroller.SDL_GameControllerName;
 import static io.github.libsdl4j.api.gamecontroller.SdlGamecontroller.SDL_GameControllerOpen;
 import static io.github.libsdl4j.api.hints.SdlHints.SDL_SetHint;
+import static io.github.libsdl4j.api.joystick.SdlJoystick.SDL_JoystickName;
+import static io.github.libsdl4j.api.joystick.SdlJoystick.SDL_JoystickOpen;
 
 public class GamepadService {
 
@@ -51,13 +58,10 @@ public class GamepadService {
         SDL_SetHint("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 
         SDL_GameController sdlGameController = null;
+        SDL_Joystick sdlJoyStick = null;
         SDL_Event evt = new SDL_Event();
 
         while (ConfigService.getInstance().isRunSDLEventLoop()) {
-            if (sdlGameController == null) {
-                sdlGameController = SDL_GameControllerOpen(0);
-            }
-
             while (SDL_PollEvent(evt) != 0) {
 
                 updateGamepadButtons(sdlGameController, evt.jaxis);
@@ -65,12 +69,46 @@ public class GamepadService {
                 switch (evt.type) {
                     case SDL_CONTROLLERDEVICEADDED:
                         System.out.println("Controller added: " + evt.cdevice);
+                        if (sdlJoyStick == null) {
+                            sdlGameController = SDL_GameControllerOpen(evt.jdevice.which);
+                            if (sdlGameController == null) {
+                                System.out.println("Failed to open gamepad: " + SDL_GetError());
+                            } else {
+                                System.out.println("Gamepad opened: " + SDL_GameControllerName(sdlGameController));
+                            }
+                        }
+                        break;
+                    case SDL_CONTROLLERDEVICEREMOVED:
+                        if (sdlGameController != null) {
+                            System.out.println("Gamepad closed: " + SDL_GameControllerName(sdlGameController));
+                            sdlGameController = null;
+                        }
+                        break;
+                    case SDL_JOYDEVICEADDED:
+                        System.out.println("Joystick added: " + evt.jdevice.which);
+                        if (sdlJoyStick == null) {
+                            sdlJoyStick = SDL_JoystickOpen(evt.jdevice.which);
+                            if (sdlJoyStick == null) {
+                                System.out.println("Failed to open joystick: " + SDL_GetError());
+                            } else {
+                                System.out.println("Joystick opened: " + SDL_JoystickName(sdlJoyStick));
+                            }
+                        }
+                        break;
+                    case SDL_JOYDEVICEREMOVED:
+                        if (sdlJoyStick != null) {
+                            System.out.println("Gamepad closed: " + SDL_JoystickName(sdlJoyStick));
+                            sdlJoyStick = null;
+                        }
                         break;
                     case SDL_JOYAXISMOTION:
+                        System.out.println("Joystick axis motion: " + evt.jaxis.axis + " value: " + evt.jaxis.value);
                         if (evt.jaxis.which.equals(new SDL_JoystickID(0))) {
                             updateGamepadSticks(evt.jaxis);
                         }
+                        break;
                     default:
+                        System.out.println("Unknown event: " + evt.type);
                         break;
                 }
             }
