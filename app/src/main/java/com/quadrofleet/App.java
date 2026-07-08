@@ -61,8 +61,9 @@ public class App extends Application {
 
         Bin bin = Gst.parseBinFromDescription(gstreamerPipeline, true);
         pipeline = new Pipeline();
-        pipeline.addMany(bin, imageSink.getSinkElement());
-        Pipeline.linkMany(bin, imageSink.getSinkElement());
+        pipeline.add(bin);
+        pipeline.add(imageSink.getSinkElement());
+        bin.link(imageSink.getSinkElement());
 
         stage.setTitle(appName);
 

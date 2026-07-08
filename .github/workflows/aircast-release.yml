@@ -1,0 +1,178 @@
+name: Aircast Release
+
+# Builds self-contained QuadroFleet Station installers (macOS .dmg, Windows
+# .msi, Linux .deb) on a version tag and publishes a GitHub release. Each
+# installer bundles a JRE plus a pruned GStreamer runtime and SDL2, so it runs
+# with no external dependencies.
+#
+# Tags are created with `make release.<patch|minor|major|dev|staging>`.
+#
+# Optional macOS signing/notarization secrets (build is unsigned when unset):
+#   MACOS_SIGNING_IDENTITY   - Developer ID Application identity name
+#   MACOS_NOTARIZE_PROFILE   - notarytool keychain profile (set up in a prior step)
+# Uses the built-in GITHUB_TOKEN for the release — no PAT needed.
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - "aircast-v[0-9]+.[0-9]+.[0-9]+" # production: aircast-v1.0.0
+      - "aircast-v*-staging.*" # staging:     aircast-v1.0.0-staging.1
+      - "aircast-v*-dev.*" # development:  aircast-v1.0.1-dev.1
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Existing tag to (re)release (e.g. aircast-v1.0.0)"
+        required: true
+        type: string
+
+env:
+  JAVA_VERSION: "21"
+  GSTREAMER_VERSION: "1.26.9"
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.config.outputs.version }}
+      app_version: ${{ steps.config.outputs.app_version }}
+      is_production: ${{ steps.config.outputs.is_production }}
+    steps:
+      - id: config
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+          # jpackage requires a plain numeric MAJOR.MINOR.PATCH version
+          APP_VERSION="${VERSION#aircast-v}"
+          APP_VERSION="${APP_VERSION%%-*}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" =~ ^aircast-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "is_production=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_production=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Release: $VERSION (app-version $APP_VERSION)"
+
+  build-macos:
+    needs: setup
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.setup.outputs.version }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - name: Install GStreamer runtime framework
+        run: |
+          PKG="gstreamer-1.0-${GSTREAMER_VERSION}-universal.pkg"
+          curl -fsSLO "https://gstreamer.freedesktop.org/data/pkg/osx/${GSTREAMER_VERSION}/${PKG}"
+          sudo installer -pkg "$PKG" -target /
+      - name: Install SDL2
+        run: brew install sdl2
+      - name: Build self-contained .dmg
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          MACOS_NOTARIZE_PROFILE: ${{ secrets.MACOS_NOTARIZE_PROFILE }}
+        run: ./scripts/package-mac.sh "${{ needs.setup.outputs.app_version }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: build/dist-mac/*.dmg
+          if-no-files-found: error
+
+  build-windows:
+    needs: setup
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.setup.outputs.version }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - name: Install GStreamer runtime (MSVC)
+        shell: pwsh
+        run: |
+          $ver = "${{ env.GSTREAMER_VERSION }}"
+          $msi = Join-Path $PWD "gstreamer-1.0-msvc-x86_64-$ver.msi"
+          Invoke-WebRequest -Uri "https://gstreamer.freedesktop.org/data/pkg/windows/$ver/msvc/gstreamer-1.0-msvc-x86_64-$ver.msi" -OutFile $msi
+          $log = Join-Path $PWD "gst-install.log"
+          $p = Start-Process msiexec.exe -ArgumentList "/i","`"$msi`"","/qn","/norestart","ADDLOCAL=ALL","/l*v","`"$log`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Get-Content $log -Tail 40; throw "msiexec failed with exit code $($p.ExitCode)" }
+          $dll = Get-ChildItem "C:\" -Recurse -Filter "gstreamer-1.0-0.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $dll) { throw "gstreamer-1.0-0.dll not found after install" }
+          $root = Split-Path (Split-Path $dll.FullName)
+          "GSTREAMER_1_0_ROOT_MSVC_X86_64=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "GStreamer root: $root"
+      - name: Build self-contained .msi
+        shell: pwsh
+        run: ./scripts/package-windows.ps1 -Version "${{ needs.setup.outputs.app_version }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-msi
+          path: build/dist-win/*.msi
+          if-no-files-found: error
+
+  build-linux:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.setup.outputs.version }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - name: Install GStreamer + SDL2
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 \
+            gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+            gstreamer1.0-plugins-bad gstreamer1.0-libav \
+            libsdl2-2.0-0 fakeroot binutils
+      - name: Build self-contained .deb
+        run: ./scripts/package-linux.sh "${{ needs.setup.outputs.app_version }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-deb
+          path: build/dist-linux/*.deb
+          if-no-files-found: error
+
+  release:
+    needs: [setup, build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PRERELEASE=""
+          if [ "${{ needs.setup.outputs.is_production }}" != "true" ]; then
+            PRERELEASE="--prerelease"
+          fi
+          shopt -s nullglob
+          FILES=(artifacts/macos-dmg/*.dmg artifacts/windows-msi/*.msi artifacts/linux-deb/*.deb)
+          echo "Attaching: ${FILES[*]}"
+          gh release create "${{ needs.setup.outputs.version }}" \
+            --repo "${{ github.repository }}" \
+            --title "${{ needs.setup.outputs.version }}" \
+            --generate-notes \
+            $PRERELEASE \
+            "${FILES[@]}"

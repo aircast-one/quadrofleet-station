@@ -13,11 +13,14 @@ public class Utils {
     }
 
     /**
-     * Configures paths to the GStreamer libraries. On Windows queries various
-     * GStreamer environment variables, and then sets up the PATH environment
-     * variable. On macOS, adds the location to jna.library.path (macOS binaries
-     * link to each other). On both, the gstreamer.path system property can be
-     * used to override. On Linux, assumes GStreamer is in the path already.
+     * Configures paths to the native libraries (GStreamer and SDL2). On Windows
+     * queries various GStreamer environment variables, and then sets up the PATH
+     * environment variable. On macOS, adds the locations to jna.library.path
+     * (macOS binaries link to each other): the GStreamer framework plus the
+     * Homebrew library directories where {@code brew install sdl2} places
+     * libSDL2. On both, the gstreamer.path system property can be used to
+     * override GStreamer, and sdl2.path can override the SDL2 location. On Linux,
+     * assumes both are in the path already.
      */
     public static void configurePaths() {
         if (Platform.isWindows()) {
@@ -32,17 +35,38 @@ public class Utils {
                 }
             }
         } else if (Platform.isMac()) {
-            String gstPath = System.getProperty("gstreamer.path",
-                    "/Library/Frameworks/GStreamer.framework/Libraries/");
-            if (!gstPath.isEmpty()) {
-                String jnaPath = System.getProperty("jna.library.path", "").trim();
-                if (jnaPath.isEmpty()) {
-                    System.setProperty("jna.library.path", gstPath);
-                } else {
-                    System.setProperty("jna.library.path", jnaPath + File.pathSeparator + gstPath);
-                }
-            }
+            appendJnaLibraryPath(System.getProperty("gstreamer.path",
+                    "/Library/Frameworks/GStreamer.framework/Libraries/"));
 
+            String sdlPath = System.getProperty("sdl2.path");
+            if (sdlPath != null) {
+                appendJnaLibraryPath(sdlPath);
+            } else {
+                appendJnaLibraryPath("/opt/homebrew/lib");
+                appendJnaLibraryPath("/usr/local/lib");
+            }
+        } else {
+            appendJnaLibraryPath(System.getProperty("gstreamer.path"));
+            appendJnaLibraryPath(System.getProperty("sdl2.path"));
+        }
+    }
+
+    /**
+     * Appends a single directory to the jna.library.path system property,
+     * preserving any value already present.
+     *
+     * @param path directory to add; ignored when null or empty
+     */
+    private static void appendJnaLibraryPath(String path) {
+        if (path == null || path.trim().isEmpty()) {
+            return;
+        }
+
+        String current = System.getProperty("jna.library.path", "").trim();
+        if (current.isEmpty()) {
+            System.setProperty("jna.library.path", path);
+        } else {
+            System.setProperty("jna.library.path", current + File.pathSeparator + path);
         }
     }
 
