@@ -32,7 +32,9 @@ log_info() { echo -e "${GREEN}▶${NC} $1"; }
 log_warn() { echo -e "${YELLOW}▶${NC} $1" >&2; }
 
 get_current_version() {
-    git tag -l 'aircast-v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -E '^aircast-v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || echo "aircast-v0.0.0"
+    # Base defaults to 1.0.0: jpackage on macOS rejects app versions whose major
+    # component is 0, so the first release series starts at 1.x.
+    git tag -l 'aircast-v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -E '^aircast-v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || echo "aircast-v1.0.0"
 }
 
 tag_exists() {
