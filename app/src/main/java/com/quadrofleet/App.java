@@ -40,6 +40,11 @@ public class App extends Application {
     public void init() {
         Utils.configurePaths();
         Gst.init(Version.BASELINE, "QuadroFleet");
+
+        String pluginPath = System.getProperty("gstreamer.plugin.path");
+        if (pluginPath != null && !pluginPath.isEmpty()) {
+            org.freedesktop.gstreamer.Registry.get().scanPath(pluginPath);
+        }
     }
 
     @Override
