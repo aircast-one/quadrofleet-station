@@ -100,7 +100,7 @@ jpackage \
   --java-options "-Dsdl2.path=\$APPDIR/native/sdl2" \
   --java-options "-Djava.library.path=\$APPDIR/native/sdl2" \
   --dest "$DEST" \
-  "${SIGN_ARGS[@]}"
+  ${SIGN_ARGS[@]+"${SIGN_ARGS[@]}"}
 
 DMG="$(ls "$DEST"/*.dmg)"
 echo "▶ Built: $DMG"

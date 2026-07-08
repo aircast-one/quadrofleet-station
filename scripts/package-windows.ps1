@@ -23,7 +23,18 @@ $MainJar = "app.jar"
 $MainClass = "com.quadrofleet.Launcher"
 
 $GstRoot = $env:GSTREAMER_1_0_ROOT_MSVC_X86_64
-if (-not $GstRoot) { $GstRoot = "C:\gstreamer\1.0\msvc_x86_64" }
+if (-not $GstRoot -or -not (Test-Path (Join-Path $GstRoot "bin"))) {
+  # Locate the install root by finding the core runtime DLL (bin's parent).
+  $dll = Get-ChildItem "C:\gstreamer" -Recurse -Filter "gstreamer-1.0-0.dll" -ErrorAction SilentlyContinue |
+         Select-Object -First 1
+  if (-not $dll) {
+    $dll = Get-ChildItem "C:\gstreamer" -Recurse -Filter "libgstreamer-1.0-0.dll" -ErrorAction SilentlyContinue |
+           Select-Object -First 1
+  }
+  if (-not $dll) { throw "GStreamer runtime not found under C:\gstreamer" }
+  $GstRoot = Split-Path (Split-Path $dll.FullName)
+}
+Write-Host "> GStreamer root: $GstRoot"
 
 $Build = Join-Path $Root "build"
 $Stage = Join-Path $Build "pkg-win"
