@@ -12,7 +12,8 @@ import java.util.logging.Logger;
 
 import static io.github.libsdl4j.api.Sdl.SDL_Init;
 import static io.github.libsdl4j.api.Sdl.SDL_Quit;
-import static io.github.libsdl4j.api.SdlSubSystemConst.SDL_INIT_EVERYTHING;
+import static io.github.libsdl4j.api.SdlSubSystemConst.SDL_INIT_GAMECONTROLLER;
+import static io.github.libsdl4j.api.SdlSubSystemConst.SDL_INIT_JOYSTICK;
 import static io.github.libsdl4j.api.error.SdlError.SDL_GetError;
 import static io.github.libsdl4j.api.event.SDL_EventType.SDL_CONTROLLERDEVICEADDED;
 import static io.github.libsdl4j.api.event.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED;
@@ -41,7 +42,7 @@ public class GamepadService {
     }
 
     private void SDLInitialization() {
-        int result = SDL_Init(SDL_INIT_EVERYTHING);
+        int result = SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 
         if (result != 0) {
             JOptionPane.showMessageDialog(

@@ -31,8 +31,6 @@ public class App extends Application {
     private Pipeline pipeline;
 
     public static void main(String[] args) {
-        TrayIconService.initTrayIcon();
-
         launch(args);
     }
 
@@ -95,6 +93,8 @@ public class App extends Application {
         stage.setScene(new Scene(pane, gstreamerWidth, gstreamerHeight));
         stage.show();
         pipeline.play();
+
+        javax.swing.SwingUtilities.invokeLater(TrayIconService::initTrayIcon);
     }
 
 }
