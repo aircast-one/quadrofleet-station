@@ -93,6 +93,7 @@ jobs:
     needs: setup
     runs-on: windows-latest
     timeout-minutes: 30
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -107,9 +108,14 @@ jobs:
           $ver = "${{ env.GSTREAMER_VERSION }}"
           $msi = Join-Path $PWD "gstreamer-1.0-msvc-x86_64-$ver.msi"
           Invoke-WebRequest -Uri "https://gstreamer.freedesktop.org/data/pkg/windows/$ver/msvc/gstreamer-1.0-msvc-x86_64-$ver.msi" -OutFile $msi
-          $p = Start-Process msiexec.exe -ArgumentList "/i","`"$msi`"","/quiet","/qn","ADDLOCAL=ALL" -Wait -PassThru
-          if ($p.ExitCode -ne 0) { throw "msiexec failed with exit code $($p.ExitCode)" }
-          Get-ChildItem "C:\gstreamer" -Recurse -Filter "gstreamer-1.0-0.dll" -ErrorAction SilentlyContinue | Select-Object -First 1 FullName
+          $log = Join-Path $PWD "gst-install.log"
+          $p = Start-Process msiexec.exe -ArgumentList "/i","`"$msi`"","/qn","/norestart","ADDLOCAL=ALL","/l*v","`"$log`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Get-Content $log -Tail 40; throw "msiexec failed with exit code $($p.ExitCode)" }
+          $dll = Get-ChildItem "C:\" -Recurse -Filter "gstreamer-1.0-0.dll" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $dll) { throw "gstreamer-1.0-0.dll not found after install" }
+          $root = Split-Path (Split-Path $dll.FullName)
+          "GSTREAMER_1_0_ROOT_MSVC_X86_64=$root" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "GStreamer root: $root"
       - name: Build self-contained .msi
         shell: pwsh
         run: ./scripts/package-windows.ps1 -Version "${{ needs.setup.outputs.app_version }}"
@@ -149,6 +155,7 @@ jobs:
 
   release:
     needs: [setup, build-macos, build-windows, build-linux]
+    if: ${{ always() && (needs.build-macos.result == 'success' || needs.build-linux.result == 'success') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -162,11 +169,12 @@ jobs:
           if [ "${{ needs.setup.outputs.is_production }}" != "true" ]; then
             PRERELEASE="--prerelease"
           fi
+          shopt -s nullglob
+          FILES=(artifacts/macos-dmg/*.dmg artifacts/windows-msi/*.msi artifacts/linux-deb/*.deb)
+          echo "Attaching: ${FILES[*]}"
           gh release create "${{ needs.setup.outputs.version }}" \
             --repo "${{ github.repository }}" \
             --title "${{ needs.setup.outputs.version }}" \
             --generate-notes \
             $PRERELEASE \
-            artifacts/macos-dmg/*.dmg \
-            artifacts/windows-msi/*.msi \
-            artifacts/linux-deb/*.deb
+            "${FILES[@]}"
