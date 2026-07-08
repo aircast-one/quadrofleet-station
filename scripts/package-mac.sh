@@ -25,7 +25,11 @@ MAIN_CLASS="com.quadrofleet.Launcher"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GST_FW="${GSTREAMER_FRAMEWORK:-/Library/Frameworks/GStreamer.framework}"
-SDL2_DYLIB="${SDL2_DYLIB:-$(brew --prefix 2>/dev/null)/lib/libSDL2.dylib}"
+# Homebrew's sdl2 is sdl2-compat: libSDL2 forwards to the sdl2-compat impl,
+# which dlopens the real SDL3 via @loader_path/libSDL3.dylib. Bundle the impl
+# (as libSDL2.dylib) alongside SDL3 so the app has no external SDL dependency.
+SDL2_DYLIB="${SDL2_DYLIB:-$(brew --prefix sdl2-compat 2>/dev/null)/lib/libSDL2-2.0.0.dylib}"
+SDL3_DYLIB="${SDL3_DYLIB:-$(brew --prefix sdl3 2>/dev/null)/lib/libSDL3.dylib}"
 
 GST_SRC="$GST_FW/Versions/Current/lib"
 # Plugins required by the app pipeline (application.properties):
@@ -60,10 +64,12 @@ mkdir -p "$INPUT" "$DEST"
 cp "$ROOT/app/build/install/app/lib/app.jar" "$INPUT/"
 
 echo "▶ Bundling pruned GStreamer runtime"
-# Flat layout: GStreamer is relocatable and finds its plugins at
-# <dir-of-libgstreamer>/gstreamer-1.0, so no framework/symlink structure is
-# needed (jpackage does not preserve symlinks in --input anyway).
-GST_DST="$INPUT/native/gstreamer"
+# The framework dylibs reference each other via @rpath with a baked
+# @loader_path/../lib rpath, so they must live in a directory named "lib" with
+# plugins under lib/gstreamer-1.0 (the framework's own layout). Flattening
+# breaks @rpath resolution and the app then only works on machines that already
+# have GStreamer installed.
+GST_DST="$INPUT/native/gstreamer/lib"
 mkdir -p "$GST_DST/gstreamer-1.0"
 # core shared libraries (self-contained closure for the plugins above)
 cp "$GST_SRC"/*.dylib "$GST_DST/"
@@ -76,9 +82,10 @@ for p in "${PLUGINS[@]}"; do
   fi
 done
 
-echo "▶ Bundling SDL2"
+echo "▶ Bundling SDL2 (sdl2-compat) + SDL3"
 mkdir -p "$INPUT/native/sdl2"
 cp -L "$SDL2_DYLIB" "$INPUT/native/sdl2/libSDL2.dylib"
+cp -L "$SDL3_DYLIB" "$INPUT/native/sdl2/libSDL3.dylib"
 
 echo "▶ Bundle size: $(du -sh "$INPUT/native" | cut -f1)"
 
@@ -96,7 +103,7 @@ jpackage \
   --input "$INPUT" \
   --main-jar "$MAIN_JAR" \
   --main-class "$MAIN_CLASS" \
-  --java-options "-Dgstreamer.path=\$APPDIR/native/gstreamer" \
+  --java-options "-Dgstreamer.path=\$APPDIR/native/gstreamer/lib" \
   --java-options "-Dsdl2.path=\$APPDIR/native/sdl2" \
   --java-options "-Djava.library.path=\$APPDIR/native/sdl2" \
   --dest "$DEST" \
