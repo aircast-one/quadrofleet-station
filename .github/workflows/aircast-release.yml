@@ -30,7 +30,7 @@ on:
 
 env:
   JAVA_VERSION: "21"
-  GSTREAMER_VERSION: "1.24.12"
+  GSTREAMER_VERSION: "1.26.9"
 
 jobs:
   setup:
