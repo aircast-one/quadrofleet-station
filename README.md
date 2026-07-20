@@ -1,5 +1,21 @@
 # quadrofleet-station
-QuadroFleet Station Control
+
+QuadroFleet Station Control.
+
+## What this repository adds: macOS support
+
+The original QuadroFleet Station did not run on macOS. This repository ports it
+to macOS (Apple Silicon and Intel):
+
+- Native library discovery on macOS — GStreamer from
+  `/Library/Frameworks/GStreamer.framework`, SDL2 (gamepad support) from
+  Homebrew paths; both overridable via `-Dgstreamer.path=...` / `-Dsdl2.path=...`.
+- A self-contained macOS `.dmg` installer with bundled JRE, GStreamer, and
+  SDL2 — nothing to preinstall on the target machine.
+- CI release pipeline that builds and publishes the macOS installer
+  (alongside Windows `.msi` and Linux `.deb`).
+
+To build and run from source on macOS, see [INSTALL_MAC.md](INSTALL_MAC.md).
 
 ## Downloads
 
